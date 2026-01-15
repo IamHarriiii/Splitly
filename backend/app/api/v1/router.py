@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import auth, groups, expenses, debts, analytics, activity, chatbot, users
+from app.api.v1.endpoints import auth, groups, expenses, debts, settlements, analytics, activity, chatbot, users
 
 api_router = APIRouter()
 
@@ -12,8 +12,11 @@ api_router.include_router(groups.router)
 # Include expenses routes
 api_router.include_router(expenses.router)
 
-# Include debts and settlements routes
+# Include debts routes
 api_router.include_router(debts.router)
+
+# Include settlements routes
+api_router.include_router(settlements.router)
 
 # Include analytics and dashboard routes
 api_router.include_router(analytics.router)
