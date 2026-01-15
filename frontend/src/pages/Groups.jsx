@@ -25,7 +25,7 @@ export default function Groups() {
     try {
       setLoading(true);
       const data = await getGroups();
-      setGroups(Array.isArray(data) ? data : (data.items || []));
+      setGroups(Array.isArray(data) ? data : (data.data || []));
     } catch (error) {
       console.error('Failed to fetch groups:', error);
     } finally {
