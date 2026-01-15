@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { getCategories } from '../../services/expenses';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function CreateExpenseModal({ isOpen, onClose, onSubmit, groups, initialData = null }) {
+  const { user } = useAuth();
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('Food');
@@ -36,6 +38,13 @@ export default function CreateExpenseModal({ isOpen, onClose, onSubmit, groups, 
     e.preventDefault();
     setLoading(true);
     try {
+      // Create splits array - at minimum include current user
+      const splits = [{
+        user_id: user.id,
+        share_amount: groupId ? null : parseFloat(amount), // For personal, user pays full amount
+        share_percentage: null
+      }];
+
       await onSubmit({
         amount: parseFloat(amount),
         description,
@@ -44,8 +53,8 @@ export default function CreateExpenseModal({ isOpen, onClose, onSubmit, groups, 
         group_id: groupId || null,
         split_type: splitType,
         is_personal: !groupId,
-        paid_by: null, // Will use current user
-        splits: [] // Will split equally among group members
+        paid_by: user.id,
+        splits: splits
       });
       onClose();
     } catch (error) {

@@ -30,21 +30,17 @@ export default function Chatbot() {
     try {
       const response = await sendMessage(text);
       
-      if (response.intent === 'CREATE_EXPENSE' && response.parsed_expense) {
-        // Expense detected
+      if (response.success && response.parsed_expense) {
+      // Expense detected and parsed
         setPendingExpense(response.parsed_expense);
+
+        const message = response.message || "I've parsed your expense. Please review and confirm:";
         setMessages(prev => [...prev, {
-          text: "I found an expense! Please review the details below and confirm:",
+          text: message,
           isUser: false,
           timestamp: new Date()
         }]);
-      } else if (response.intent === 'QUERY_ANALYTICS' || response.intent === 'QUERY_EXPENSES' || response.intent === 'QUERY_DEBTS') {
-        // Analytics query
-        setMessages(prev => [...prev, {
-          text: response.response || response.message || "I found some information for you.",
-          isUser: false,
-          timestamp: new Date()
-        }]);
+
       } else if (response.message) {
         // General response
         setMessages(prev => [...prev, {

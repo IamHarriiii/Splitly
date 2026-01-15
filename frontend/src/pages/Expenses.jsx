@@ -30,8 +30,8 @@ export default function Expenses() {
         getExpenses({ limit: 50 }),
         getGroups()
       ]);
-      setExpenses(Array.isArray(expensesData) ? expensesData : (expensesData.items || []));
-      setGroups(Array.isArray(groupsData) ? groupsData : (groupsData.items || []));
+      setExpenses(Array.isArray(expensesData) ? expensesData : (expensesData.data || []));
+      setGroups(Array.isArray(groupsData) ? groupsData : (groupsData.data || []));
     } catch (error) {
       console.error('Failed to fetch data:', error);
     } finally {

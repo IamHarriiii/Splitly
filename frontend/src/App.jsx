@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import Groups from './pages/Groups';
+import GroupDetails from './pages/GroupDetails';
 import Expenses from './pages/Expenses';
 import Settlements from './pages/Settlements';
 import Chatbot from './pages/Chatbot';
@@ -39,6 +40,16 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <Groups />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/groups/:id"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <GroupDetails />
                 </Layout>
               </ProtectedRoute>
             }
