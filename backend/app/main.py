@@ -5,7 +5,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.core.config import settings
 from app.api.v1.router import api_router
 from app.core.middleware import RateLimitMiddleware, RequestLoggingMiddleware
-from app.core.exception_handlers import (
+from app.core.exception_handler import (
     splitly_exception_handler,
     http_exception_handler,
     validation_exception_handler,
