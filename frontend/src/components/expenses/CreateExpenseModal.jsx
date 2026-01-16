@@ -13,6 +13,7 @@ export default function CreateExpenseModal({ isOpen, onClose, onSubmit, groups, 
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [groupId, setGroupId] = useState('');
   const [splitType, setSplitType] = useState('equal');
+  const [paidBy, setPaidBy] = useState('');
   const [loading, setLoading] = useState(false);
 
   // New state for participants and splits
@@ -38,6 +39,20 @@ export default function CreateExpenseModal({ isOpen, onClose, onSubmit, groups, 
     }
   }, [groupId]);
 
+  // Auto-select group if only one is available
+  useEffect(() => {
+    if (groups && groups.length === 1 && !groupId && !initialData) {
+      setGroupId(groups[0].id);
+    }
+  }, [groups, groupId, initialData]);
+
+  // Set default paidBy
+  useEffect(() => {
+    if (user && !paidBy) {
+      setPaidBy(user.id);
+    }
+  }, [user, paidBy]);
+
   const fetchGroupMembers = async (gId) => {
     try {
       const groupData = await getGroupDetails(gId);
@@ -57,6 +72,7 @@ export default function CreateExpenseModal({ isOpen, onClose, onSubmit, groups, 
       setCategoryInput(initialData.category);
       setDate(initialData.date || initialData.expense_date);
       setGroupId(initialData.group_id || '');
+      setPaidBy(initialData.paid_by || user.id);
       setSplitType(initialData.split_type || 'equal');
     } else {
       // Reset form
@@ -66,6 +82,7 @@ export default function CreateExpenseModal({ isOpen, onClose, onSubmit, groups, 
       setCategoryInput('Food');
       setDate(new Date().toISOString().split('T')[0]);
       setGroupId('');
+      setPaidBy(user.id);
       setSplitType('equal');
       setSelectedParticipants([]);
       setExactAmounts({});
@@ -191,13 +208,17 @@ export default function CreateExpenseModal({ isOpen, onClose, onSubmit, groups, 
         group_id: groupId || null,
         split_type: splitType,
         is_personal: !groupId,
-        paid_by: user.id,
+        paid_by: paidBy || user.id,
+        splits: splits
       });
       toast.success('Expense created successfully');
       onClose();
     } catch (error) {
-      console.error(error);
-      toast.error('Failed to save expense. Please try again.');
+      console.error('Expense creation error:', error);
+      const errorMessage = error.response?.data?.detail
+        ? JSON.stringify(error.response.data.detail)
+        : 'Failed to save expense. Please try again.';
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -307,6 +328,10 @@ export default function CreateExpenseModal({ isOpen, onClose, onSubmit, groups, 
               )}
             </div>
 
+
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">Group</label>
               <select
@@ -320,6 +345,23 @@ export default function CreateExpenseModal({ isOpen, onClose, onSubmit, groups, 
                 ))}
               </select>
             </div>
+
+            {groupId && groupMembers.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium mb-1">Paid By</label>
+                <select
+                  value={paidBy}
+                  onChange={(e) => setPaidBy(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {groupMembers.map(member => (
+                    <option key={member.user_id} value={member.user_id}>
+                      {member.user_id === user.id ? 'You' : member.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
           {groupId && (

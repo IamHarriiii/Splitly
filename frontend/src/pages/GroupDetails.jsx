@@ -102,6 +102,7 @@ export default function GroupDetails() {
       fetchGroupData();
     } catch (error) {
       console.error('Failed to create expense:', error);
+      throw error; // Propagate error to modal
     }
   };
 
