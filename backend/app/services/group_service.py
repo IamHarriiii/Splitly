@@ -318,17 +318,31 @@ def add_member(
             )
     
     # Create invitation
+    # If invitee_id is known, we auto-accept the invitation
+    status_val = InvitationStatus.ACCEPTED if invitee_id else InvitationStatus.PENDING
+    
     invitation = Invitation(
         group_id=group_id,
         inviter_id=inviter_id,
         invitee_email=invitee_email,
         invitee_id=invitee_id,
-        status=InvitationStatus.PENDING,
+        status=status_val,
         token=str(uuid4()),
         expires_at=datetime.utcnow() + timedelta(days=7)
     )
     
     db.add(invitation)
+    
+    # If known user, add membership directly
+    if invitee_id:
+        membership = GroupMember(
+            group_id=group_id,
+            user_id=invitee_id,
+            role=GroupMemberRole.MEMBER,
+            invited_by=inviter_id
+        )
+        db.add(membership)
+    
     db.commit()
     db.refresh(invitation)
     
