@@ -30,7 +30,7 @@ export default function Dashboard() {
         getRecentExpenses(10)
       ]);
       setDashboardData(dashboard);
-      setRecentExpenses(expenses.items || expenses);
+      setRecentExpenses(Array.isArray(expenses) ? expenses : (expenses.data || []));
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
       setError('Failed to load dashboard data');
@@ -63,7 +63,7 @@ export default function Dashboard() {
   }
 
   const summary = dashboardData?.user_summary || {};
-  const monthlyTrend = dashboardData?.monthly_trend || [];
+  const monthlyTrend = dashboardData?.monthly_trends || [];  // Fixed: was monthly_trend
   const categoryBreakdown = dashboardData?.category_breakdown || [];
 
   const quickActions = [

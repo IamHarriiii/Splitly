@@ -18,11 +18,10 @@ export default function SettleUpModal({ isOpen, debt, onClose, onSubmit }) {
     setLoading(true);
     try {
       await onSubmit({
-        from_user: debt.type === 'you_owe' ? null : debt.user_id,
-        to_user: debt.type === 'you_owe' ? debt.user_id : null,
+        group_id: debt.group_id,
+        receiver_id: debt.user_id,  // The other user (backend sets payer as current user)
         amount: parseFloat(amount),
-        note,
-        group_id: debt.group_id || null
+        notes: note
       });
       onClose();
     } catch (error) {

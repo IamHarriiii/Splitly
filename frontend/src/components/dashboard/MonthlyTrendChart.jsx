@@ -99,7 +99,7 @@ export default function MonthlyTrendChart({ data }) {
     // Add axes
     svg.append('g')
       .attr('transform', `translate(0,${height})`)
-      .call(d3.axisBottom(x).ticks(6))
+      .call(d3.axisBottom(x).ticks(6).tickFormat(d3.timeFormat('%b %Y')))  // Format as "Jan 2026"
       .selectAll('text')
       .attr('transform', 'rotate(-45)')
       .style('text-anchor', 'end');

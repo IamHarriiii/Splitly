@@ -5,6 +5,7 @@ import { getGroupDetails } from '../services/groups';
 import { getExpenses } from '../services/expenses';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
+import AddMemberModal from '../components/groups/AddMemberModal';
 
 export default function GroupDetails() {
   const { id } = useParams();
@@ -12,6 +13,7 @@ export default function GroupDetails() {
   const [group, setGroup] = useState(null);
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showAddMemberModal, setShowAddMemberModal] = useState(false);
 
   useEffect(() => {
     fetchGroupData();
@@ -132,7 +134,7 @@ export default function GroupDetails() {
                 <Users size={24} />
                 Members
               </CardTitle>
-              <Button size="sm" variant="outline">
+              <Button size="sm" variant="outline" onClick={() => setShowAddMemberModal(true)}>
                 <UserPlus size={16} className="mr-2" />
                 Add Member
               </Button>
@@ -208,6 +210,14 @@ export default function GroupDetails() {
           </Card>
         </div>
       </div>
+
+      {/* Add Member Modal */}
+      <AddMemberModal
+        isOpen={showAddMemberModal}
+        onClose={() => setShowAddMemberModal(false)}
+        groupId={id}
+        onMemberAdded={fetchGroupData}
+      />
     </div>
   );
 }

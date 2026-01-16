@@ -82,12 +82,32 @@ export default function CategoryChart({ data }) {
 
   }, [data]);
 
+  // Define colors array for legend
+  const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       <h3 className="text-lg font-semibold mb-4 text-gray-800">Category Breakdown</h3>
       <div className="flex justify-center">
         <svg ref={svgRef}></svg>
       </div>
+
+      {/* Legend */}
+      {data && data.length > 0 && (
+        <div className="mt-6 flex flex-wrap justify-center gap-4">
+          {data.map((item, index) => (
+            <div key={item.category} className="flex items-center gap-2">
+              <div
+                className="w-4 h-4 rounded-full"
+                style={{ backgroundColor: colors[index % colors.length] }}
+              ></div>
+              <span className="text-sm text-gray-700">
+                {item.category} ({item.percentage?.toFixed(0) || 0}%)
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

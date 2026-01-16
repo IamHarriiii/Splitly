@@ -34,6 +34,6 @@ export const removeMember = async (groupId, userId) => {
 };
 
 export const searchUsers = async (query) => {
-  const response = await api.get(`/users/search?query=${query}`);
+  const response = await api.get(`/users/search?q=${query}`);
   return response.data;
 };
