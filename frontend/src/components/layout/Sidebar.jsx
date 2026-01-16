@@ -10,7 +10,6 @@ export default function Sidebar() {
     { path: '/groups', icon: Users, label: 'Groups', color: 'emerald' },
     { path: '/expenses', icon: Receipt, label: 'Expenses', color: 'amber' },
     { path: '/settlements', icon: Scale, label: 'Settlements', color: 'violet' },
-    { path: '/chatbot', icon: Bot, label: 'AI Assistant', color: 'indigo' },
   ];
 
   return (

@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Users, DollarSign, Settings, UserPlus, TrendingUp } from 'lucide-react';
-import { getGroupDetails } from '../services/groups';
+import { ArrowLeft, Users, DollarSign, UserPlus, TrendingUp, Edit, Trash2, X, Calendar, User, Tag, Clock, Receipt } from 'lucide-react';
+import { getGroupDetails, updateGroup, deleteGroup } from '../services/groups';
 import { getExpenses } from '../services/expenses';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import AddMemberModal from '../components/groups/AddMemberModal';
+import CreateGroupModal from '../components/groups/CreateGroupModal';
+import DeleteGroupModal from '../components/groups/DeleteGroupModal';
 
 export default function GroupDetails() {
   const { id } = useParams();
@@ -14,6 +16,10 @@ export default function GroupDetails() {
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [selectedExpense, setSelectedExpense] = useState(null);
 
   useEffect(() => {
     fetchGroupData();
@@ -32,6 +38,28 @@ export default function GroupDetails() {
       console.error('Failed to fetch group data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEditGroup = async (data) => {
+    try {
+      await updateGroup(id, data);
+      setShowEditModal(false);
+      fetchGroupData();
+    } catch (error) {
+      console.error('Failed to update group:', error);
+    }
+  };
+
+  const handleDeleteGroup = async () => {
+    setDeleteLoading(true);
+    try {
+      await deleteGroup(id);
+      navigate('/groups');
+    } catch (error) {
+      console.error('Failed to delete group:', error);
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -59,9 +87,37 @@ export default function GroupDetails() {
 
   const totalExpenses = expenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
 
+  // Helper functions for expense popup
+  const getCategoryColor = (category) => {
+    const colors = {
+      'Food': { bg: 'bg-orange-100', text: 'text-orange-700', accent: '#f97316' },
+      'Transport': { bg: 'bg-emerald-100', text: 'text-emerald-700', accent: '#10b981' },
+      'Groceries': { bg: 'bg-yellow-100', text: 'text-yellow-700', accent: '#eab308' },
+      'Entertainment': { bg: 'bg-purple-100', text: 'text-purple-700', accent: '#8b5cf6' },
+      'Shopping': { bg: 'bg-pink-100', text: 'text-pink-700', accent: '#ec4899' },
+      'Bills': { bg: 'bg-red-100', text: 'text-red-700', accent: '#ef4444' },
+      'Healthcare': { bg: 'bg-cyan-100', text: 'text-cyan-700', accent: '#06b6d4' },
+      'Other': { bg: 'bg-slate-100', text: 'text-slate-700', accent: '#64748b' }
+    };
+    return colors[category] || colors['Other'];
+  };
+
+  const getRelativeTime = (dateStr) => {
+    const date = new Date(dateStr);
+    const today = new Date();
+    const diffTime = today.getTime() - date.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+    return `${Math.floor(diffDays / 30)} months ago`;
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6 sm:p-8 lg:p-12">
+      <div className="max-w-[1600px] mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
           <Button
@@ -84,13 +140,26 @@ export default function GroupDetails() {
                   <p className="text-blue-100">{group.description}</p>
                 )}
               </div>
-              <Button
-                variant="ghost"
-                className="text-white hover:bg-white/20"
-                onClick={() => navigate(`/groups/${id}/settings`)}
-              >
-                <Settings size={20} />
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-white hover:bg-white/20"
+                  onClick={() => setShowEditModal(true)}
+                >
+                  <Edit size={18} className="mr-2" />
+                  Edit
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-white hover:bg-red-500/30"
+                  onClick={() => setShowDeleteModal(true)}
+                >
+                  <Trash2 size={18} className="mr-2" />
+                  Delete
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="pt-6">
@@ -189,7 +258,8 @@ export default function GroupDetails() {
                   expenses.map((expense) => (
                     <div
                       key={expense.id}
-                      className="flex items-center justify-between p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
+                      className="flex items-center justify-between p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer"
+                      onClick={() => setSelectedExpense(expense)}
                     >
                       <div>
                         <p className="font-medium">{expense.description}</p>
@@ -218,6 +288,154 @@ export default function GroupDetails() {
         groupId={id}
         onMemberAdded={fetchGroupData}
       />
+
+      {/* Edit Group Modal */}
+      <CreateGroupModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onSubmit={handleEditGroup}
+        initialData={group}
+      />
+
+      {/* Delete Group Modal */}
+      <DeleteGroupModal
+        isOpen={showDeleteModal}
+        group={group}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDeleteGroup}
+        loading={deleteLoading}
+      />
+
+      {/* Expense Details Popup */}
+      {selectedExpense && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={() => setSelectedExpense(null)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[80vh] overflow-auto animate-in fade-in zoom-in-95 duration-200"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Popup Header */}
+            <div
+              className="p-5 rounded-t-xl"
+              style={{ background: `linear-gradient(135deg, ${getCategoryColor(selectedExpense.category).accent}, ${getCategoryColor(selectedExpense.category).accent}cc)` }}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3 text-white">
+                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                    <Receipt size={24} />
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-semibold">{selectedExpense.description}</h4>
+                    <p className="text-white/80 text-sm">{selectedExpense.category}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedExpense(null)}
+                  className="text-white/80 hover:text-white p-1 rounded-full hover:bg-white/20 transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+
+            {/* Popup Content */}
+            <div className="p-5 space-y-4">
+              {/* Amount */}
+              <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl">
+                <div
+                  className="w-14 h-14 rounded-xl flex items-center justify-center"
+                  style={{ backgroundColor: `${getCategoryColor(selectedExpense.category).accent}20` }}
+                >
+                  <DollarSign size={28} style={{ color: getCategoryColor(selectedExpense.category).accent }} />
+                </div>
+                <div>
+                  <p className="text-sm text-slate-600">Amount</p>
+                  <p className="text-3xl font-bold text-slate-900">
+                    ${parseFloat(selectedExpense.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                </div>
+              </div>
+
+              {/* Details Grid */}
+              <div className="grid grid-cols-2 gap-3">
+                {/* Category */}
+                <div className="p-3 bg-slate-50 rounded-lg">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Tag size={14} className="text-slate-500" />
+                    <span className="text-xs text-slate-500 font-medium">Category</span>
+                  </div>
+                  <p className="font-semibold text-slate-900">{selectedExpense.category}</p>
+                </div>
+
+                {/* Date */}
+                <div className="p-3 bg-slate-50 rounded-lg">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Calendar size={14} className="text-slate-500" />
+                    <span className="text-xs text-slate-500 font-medium">Date</span>
+                  </div>
+                  <p className="font-semibold text-slate-900">
+                    {new Date(selectedExpense.date).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric'
+                    })}
+                  </p>
+                </div>
+
+                {/* Paid By */}
+                {selectedExpense.paid_by_name && (
+                  <div className="p-3 bg-slate-50 rounded-lg">
+                    <div className="flex items-center gap-2 mb-1">
+                      <User size={14} className="text-slate-500" />
+                      <span className="text-xs text-slate-500 font-medium">Paid By</span>
+                    </div>
+                    <p className="font-semibold text-slate-900">{selectedExpense.paid_by_name}</p>
+                  </div>
+                )}
+
+                {/* Group */}
+                <div className="p-3 bg-slate-50 rounded-lg">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Users size={14} className="text-slate-500" />
+                    <span className="text-xs text-slate-500 font-medium">Group</span>
+                  </div>
+                  <p className="font-semibold text-slate-900">{group.name}</p>
+                </div>
+              </div>
+
+              {/* Time Info */}
+              <div className="p-3 border border-slate-200 rounded-lg bg-slate-50/50 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Clock size={16} className="text-slate-400" />
+                  <span className="text-sm text-slate-600">Added</span>
+                </div>
+                <span className="text-sm font-medium text-slate-700">{getRelativeTime(selectedExpense.date)}</span>
+              </div>
+
+              {/* Transaction ID */}
+              {selectedExpense.id && (
+                <div className="p-3 border border-slate-200 rounded-lg bg-slate-50/50">
+                  <p className="text-xs text-slate-400 font-mono">
+                    Transaction ID: {selectedExpense.id.toString().slice(0, 8)}...
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Popup Footer */}
+            <div className="p-4 border-t bg-slate-50 rounded-b-xl">
+              <button
+                onClick={() => setSelectedExpense(null)}
+                className="w-full py-2.5 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

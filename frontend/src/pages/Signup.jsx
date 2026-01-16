@@ -30,11 +30,11 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-violet-50 to-indigo-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-500 shadow-lg mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-500 shadow-lg mb-4">
             <Sparkles size={32} className="text-white" />
           </div>
           <h1 className="text-3xl font-bold text-slate-900 mb-2">Splitly</h1>
@@ -63,7 +63,7 @@ export default function Signup() {
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                    className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     placeholder="John Doe"
                     required
                   />
@@ -105,7 +105,7 @@ export default function Signup() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full py-6 text-lg bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700"
+                className="w-full py-6 text-lg"
               >
                 {loading ? (
                   <div className="flex items-center gap-2">
@@ -124,7 +124,7 @@ export default function Signup() {
             <div className="mt-6 text-center">
               <p className="text-sm text-slate-600">
                 Already have an account?{' '}
-                <Link to="/login" className="text-violet-600 hover:text-violet-700 font-medium">
+                <Link to="/login" className="text-blue-600 hover:text-blue-700 font-medium">
                   Sign in
                 </Link>
               </p>

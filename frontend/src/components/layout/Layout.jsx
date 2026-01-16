@@ -1,4 +1,5 @@
 import Sidebar from './Sidebar';
+import FloatingChatbot from './FloatingChatbot';
 
 export default function Layout({ children }) {
   return (
@@ -7,6 +8,7 @@ export default function Layout({ children }) {
       <main className="flex-1 overflow-y-auto">
         {children}
       </main>
+      <FloatingChatbot />
     </div>
   );
 }

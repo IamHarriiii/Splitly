@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Users as UsersIcon, MoreVertical, Edit, Trash2, Eye } from 'lucide-react';
+import { Plus, Users as UsersIcon } from 'lucide-react';
 import { getGroups, createGroup, updateGroup, deleteGroup } from '../services/groups';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -15,7 +15,6 @@ export default function Groups() {
   const [editingGroup, setEditingGroup] = useState(null);
   const [deletingGroup, setDeletingGroup] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [activeMenu, setActiveMenu] = useState(null);
 
   useEffect(() => {
     fetchGroups();
@@ -108,6 +107,7 @@ export default function Groups() {
               <Card
                 key={group.id}
                 className="border-0 overflow-hidden hover:scale-105 transition-transform duration-300 cursor-pointer group"
+                onClick={() => navigate(`/groups/${group.id}`)}
               >
                 <div className={`h-2 bg-gradient-to-r ${groupGradients[index % groupGradients.length]}`} />
                 <CardHeader className="pb-3">
@@ -115,54 +115,6 @@ export default function Groups() {
                     <div className="flex-1">
                       <CardTitle className="text-xl mb-1">{group.name}</CardTitle>
                       <p className="text-sm text-gray-600">{group.member_count || 0} members</p>
-                    </div>
-                    <div className="relative">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setActiveMenu(activeMenu === group.id ? null : group.id);
-                        }}
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                      >
-                        <MoreVertical size={20} className="text-gray-600" />
-                      </button>
-                      {activeMenu === group.id && (
-                        <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border z-10">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(`/groups/${group.id}`);
-                              setActiveMenu(null);
-                            }}
-                            className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 rounded-t-lg"
-                          >
-                            <Eye size={16} />
-                            View Details
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setEditingGroup(group);
-                              setActiveMenu(null);
-                            }}
-                            className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
-                          >
-                            <Edit size={16} />
-                            Edit Group
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setDeletingGroup(group);
-                              setActiveMenu(null);
-                            }}
-                            className="w-full px-4 py-2 text-left hover:bg-red-50 text-red-600 flex items-center gap-2 rounded-b-lg"
-                          >
-                            <Trash2 size={16} />
-                            Delete Group
-                          </button>
-                        </div>
-                      )}
                     </div>
                   </div>
                 </CardHeader>

@@ -17,15 +17,18 @@ export default function SettleUpModal({ isOpen, debt, onClose, onSubmit }) {
     e.preventDefault();
     setLoading(true);
     try {
-      await onSubmit({
+      const payload = {
         group_id: debt.group_id,
-        receiver_id: debt.user_id,  // The other user (backend sets payer as current user)
+        receiver_id: debt.user_id,
         amount: parseFloat(amount),
         notes: note
-      });
+      };
+      console.log('Settlement payload:', payload);
+      await onSubmit(payload);
       onClose();
     } catch (error) {
-      console.error(error);
+      console.error('Settlement error:', error);
+      console.error('Error response:', error.response?.data);
       alert('Failed to record settlement. Please try again.');
     } finally {
       setLoading(false);

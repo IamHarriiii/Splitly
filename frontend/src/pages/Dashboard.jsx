@@ -100,7 +100,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Header */}
       <div className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-[1600px] mx-auto px-6 sm:px-8 lg:px-12 py-8">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-slate-900 mb-1 flex items-center gap-2">
@@ -114,7 +114,7 @@ export default function Dashboard() {
       </div>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <main className="max-w-[1600px] mx-auto px-6 sm:px-8 lg:px-12 py-8 space-y-6">
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {quickActions.map((action) => (
@@ -143,7 +143,10 @@ export default function Dashboard() {
           <Card className="border-slate-200 bg-white">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-medium text-slate-600">Total Expenses</p>
+                <div>
+                  <p className="text-sm font-medium text-slate-600">Total Expenses</p>
+                  <p className="text-xs text-slate-400">(of this month)</p>
+                </div>
                 <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
                   <DollarSign className="text-blue-600" size={20} />
                 </div>
@@ -155,7 +158,10 @@ export default function Dashboard() {
           <Card className="border-slate-200 bg-white">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-medium text-slate-600">You Owe</p>
+                <div>
+                  <p className="text-sm font-medium text-slate-600">You Owe</p>
+                  <p className="text-xs text-slate-400">(of this month)</p>
+                </div>
                 <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
                   <TrendingDown className="text-red-600" size={20} />
                 </div>
@@ -167,7 +173,10 @@ export default function Dashboard() {
           <Card className="border-slate-200 bg-white">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-medium text-slate-600">Owed to You</p>
+                <div>
+                  <p className="text-sm font-medium text-slate-600">Owed to You</p>
+                  <p className="text-xs text-slate-400">(of this month)</p>
+                </div>
                 <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
                   <TrendingUp className="text-emerald-600" size={20} />
                 </div>
@@ -179,7 +188,10 @@ export default function Dashboard() {
           <Card className="border-slate-200 bg-white">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-medium text-slate-600">Active Groups</p>
+                <div>
+                  <p className="text-sm font-medium text-slate-600">Active Groups</p>
+                  <p className="text-xs text-slate-400">(currently active)</p>
+                </div>
                 <div className="w-10 h-10 rounded-lg bg-violet-50 flex items-center justify-center">
                   <Users className="text-violet-600" size={20} />
                 </div>

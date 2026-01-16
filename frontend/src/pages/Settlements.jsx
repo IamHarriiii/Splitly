@@ -46,21 +46,21 @@ export default function Settlements() {
   const netBalance = totalToReceive - totalOwed;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {loading ? (
         <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
       ) : debts.length === 0 ? (
         <div className="flex items-center justify-center min-h-screen p-4">
           <Card className="max-w-md w-full border-0 shadow-xl">
             <CardContent className="pt-12 pb-8 text-center">
-              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
                 <CheckCircle size={40} className="text-white" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-2">All settled up!</h3>
               <p className="text-gray-600 mb-6">You don't owe anyone, and nobody owes you</p>
-              <Button onClick={() => navigate('/expenses')} className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
+                <Button onClick={() => navigate('/expenses')}>
                 Add Expenses
               </Button>
             </CardContent>
