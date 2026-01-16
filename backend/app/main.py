@@ -23,9 +23,14 @@ app = FastAPI(
 )
 
 # Configure CORS
+# In production, this should be restricted to the frontend domain
+origins = []
+if hasattr(settings, "cors_origins_list"):
+    origins = settings.cors_origins_list
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins in development
+    allow_origins=origins if origins else ["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

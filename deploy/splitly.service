@@ -1,0 +1,14 @@
+[Unit]
+Description=Gunicorn instance to serve Splitly API
+After=network.target
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/Splitly/backend
+Environment="PATH=/home/ubuntu/Splitly/backend/venv/bin"
+# Ensure simple execution with 4 workers. Binding to localhost since Nginx proxies it.
+ExecStart=/home/ubuntu/Splitly/backend/venv/bin/gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app --bind 127.0.0.1:8000
+
+[Install]
+WantedBy=multi-user.target
