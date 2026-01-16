@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, Users } from 'lucide-react';
+import { toast } from 'sonner';
 import { getCategories } from '../../services/expenses';
 import { getGroupDetails } from '../../services/groups';
 import { useAuth } from '../../contexts/AuthContext';
@@ -141,7 +142,7 @@ export default function CreateExpenseModal({ isOpen, onClose, onSubmit, groups, 
       // Validation for group expenses
       if (groupId) {
         if (selectedParticipants.length === 0) {
-          alert('Please select at least one participant');
+          toast.error('Please select at least one participant');
           setLoading(false);
           return;
         }
@@ -149,7 +150,7 @@ export default function CreateExpenseModal({ isOpen, onClose, onSubmit, groups, 
         if (splitType === 'exact') {
           const total = getTotalExactAmount();
           if (Math.abs(total - parseFloat(amount)) > 0.01) {
-            alert(`Exact amounts (${total.toFixed(2)}) must equal total amount (${amount})`);
+            toast.error(`Exact amounts (${total.toFixed(2)}) must equal total amount (${amount})`);
             setLoading(false);
             return;
           }
@@ -158,7 +159,7 @@ export default function CreateExpenseModal({ isOpen, onClose, onSubmit, groups, 
         if (splitType === 'percentage') {
           const total = getTotalPercentage();
           if (Math.abs(total - 100) > 0.01) {
-            alert(`Percentages (${total.toFixed(1)}%) must equal 100%`);
+            toast.error(`Percentages (${total.toFixed(1)}%) must equal 100%`);
             setLoading(false);
             return;
           }
@@ -191,12 +192,12 @@ export default function CreateExpenseModal({ isOpen, onClose, onSubmit, groups, 
         split_type: splitType,
         is_personal: !groupId,
         paid_by: user.id,
-        splits: splits
       });
+      toast.success('Expense created successfully');
       onClose();
     } catch (error) {
       console.error(error);
-      alert('Failed to save expense. Please try again.');
+      toast.error('Failed to save expense. Please try again.');
     } finally {
       setLoading(false);
     }

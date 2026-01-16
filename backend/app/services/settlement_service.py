@@ -35,9 +35,9 @@ def calculate_net_balances(group_id: UUID, db: Session) -> Dict[UUID, float]:
     
     for debt in debts:
         # user_to should receive money (positive balance)
-        balances[debt.user_to] += debt.amount
+        balances[debt.user_to] += float(debt.amount)
         # user_from should pay money (negative balance)
-        balances[debt.user_from] -= debt.amount
+        balances[debt.user_from] -= float(debt.amount)
     
     return dict(balances)
 

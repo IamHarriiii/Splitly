@@ -6,7 +6,7 @@ export const getDebtSummary = async () => {
 };
 
 export const getGroupDebtSummary = async (groupId) => {
-  const response = await api.get(`/groups/${groupId}/debts`);
+  const response = await api.get(`/debts/groups/${groupId}/summary`);
   return response.data;
 };
 

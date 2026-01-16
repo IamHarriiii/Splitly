@@ -20,9 +20,14 @@ export const deleteExpense = async (expenseId) => {
   await api.delete(`/expenses/${expenseId}`);
 };
 
-export const getExpenseSplits = async (expenseId) => {
-  const response = await api.get(`/expenses/${expenseId}/splits`);
+export const getExpenseDetails = async (expenseId) => {
+  const response = await api.get(`/expenses/${expenseId}`);
   return response.data;
+};
+
+export const getExpenseSplits = async (expenseId) => {
+  const expense = await getExpenseDetails(expenseId);
+  return expense.splits || [];
 };
 
 export const getCategories = () => {

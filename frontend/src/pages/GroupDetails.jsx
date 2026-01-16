@@ -9,6 +9,7 @@ import AddMemberModal from '../components/groups/AddMemberModal';
 import CreateGroupModal from '../components/groups/CreateGroupModal';
 import DeleteGroupModal from '../components/groups/DeleteGroupModal';
 import CreateExpenseModal from '../components/expenses/CreateExpenseModal';
+import GroupDebtSummary from '../components/groups/GroupDebtSummary';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function GroupDetails() {
@@ -24,6 +25,7 @@ export default function GroupDetails() {
   const [showAddExpenseModal, setShowAddExpenseModal] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState(null);
+  const [expensesVersion, setExpensesVersion] = useState(0);
 
   useEffect(() => {
     fetchGroupData();
@@ -54,6 +56,7 @@ export default function GroupDetails() {
 
       setGroup(groupData);
       setExpenses(expensesWithSplits);
+      setExpensesVersion(prev => prev + 1);
 
       // Debug logging
       console.log('Group Data:', groupData);
@@ -330,6 +333,11 @@ export default function GroupDetails() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Smart Settlements Section */}
+          <div className="md:col-span-2 lg:col-span-2">
+            <GroupDebtSummary groupId={id} refreshTrigger={expensesVersion} />
+          </div>
 
           {/* Payment Status Section */}
           {expenses.length > 0 && (

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, DollarSign } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function SettleUpModal({ isOpen, debt, onClose, onSubmit }) {
   const [amount, setAmount] = useState('');
@@ -25,11 +26,12 @@ export default function SettleUpModal({ isOpen, debt, onClose, onSubmit }) {
       };
       console.log('Settlement payload:', payload);
       await onSubmit(payload);
+      toast.success('Settlement recorded successfully');
       onClose();
     } catch (error) {
       console.error('Settlement error:', error);
       console.error('Error response:', error.response?.data);
-      alert('Failed to record settlement. Please try again.');
+      toast.error('Failed to record settlement. Please try again.');
     } finally {
       setLoading(false);
     }

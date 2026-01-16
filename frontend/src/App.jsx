@@ -13,9 +13,12 @@ import Settlements from './pages/Settlements';
 import Chatbot from './pages/Chatbot';
 import './index.css';
 
+import { Toaster } from 'sonner';
+
 function App() {
   return (
     <AuthProvider>
+      <Toaster position="top-center" richColors closeButton />
       <BrowserRouter>
         <Routes>
           {/* Public Routes */}

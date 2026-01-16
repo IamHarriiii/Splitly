@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, Search, UserPlus } from 'lucide-react';
+import { toast } from 'sonner';
 import { searchUsers, addMember } from '../../services/groups';
 
 export default function AddMemberModal({ isOpen, onClose, groupId, onMemberAdded }) {
@@ -34,11 +35,13 @@ export default function AddMemberModal({ isOpen, onClose, groupId, onMemberAdded
       await addMember(groupId, userId);
       setSearchQuery('');
       setSearchResults([]);
+      setSearchResults([]);
       onMemberAdded();
+      toast.success('Member added successfully');
       onClose();
     } catch (error) {
       console.error('Failed to add member:', error);
-      alert('Failed to add member. They may already be in the group.');
+      toast.error('Failed to add member. They may already be in the group.');
     } finally {
       setLoading(false);
     }
