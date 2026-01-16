@@ -58,28 +58,28 @@ def get_debt_summary(
         # Add debts where others owe me
         for debt in owed_to_me:
             other_user = db.query(User).filter(User.id == debt.user_from).first()
-            total_owed_to_me += debt.amount
+            total_owed_to_me += float(debt.amount)
             all_debts.append({
                 "id": str(debt.id),
                 "group_id": str(debt.group_id),
                 "group_name": group.name if group else "Unknown",
                 "other_user_id": str(debt.user_from),
                 "other_user_name": other_user.name if other_user else "Unknown",
-                "amount": debt.amount,  # Positive - they owe me
+                "amount": float(debt.amount),  # Positive - they owe me
                 "type": "owed_to_me"
             })
         
         # Add debts where I owe others
         for debt in i_owe:
             other_user = db.query(User).filter(User.id == debt.user_to).first()
-            total_i_owe += debt.amount
+            total_i_owe += float(debt.amount)
             all_debts.append({
                 "id": str(debt.id),
                 "group_id": str(debt.group_id),
                 "group_name": group.name if group else "Unknown",
                 "other_user_id": str(debt.user_to),
                 "other_user_name": other_user.name if other_user else "Unknown",
-                "amount": -debt.amount,  # Negative - I owe them
+                "amount": -float(debt.amount),  # Negative - I owe them
                 "type": "i_owe"
             })
     

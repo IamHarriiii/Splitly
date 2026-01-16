@@ -70,8 +70,8 @@ def get_user_dashboard(
         "user_name": user.name,
         "total_expenses": total_expenses,
         "total_paid": total_paid,
-        "total_owed_to_user": total_owed_to_user,
-        "total_user_owes": total_user_owes,
+        "total_owed_to_you": total_owed_to_user,  # Fixed field name
+        "total_you_owe": total_user_owes,  # Fixed field name
         "net_balance": total_owed_to_user - total_user_owes,
         "expense_count": len(user_expenses),
         "group_count": group_count
@@ -192,7 +192,7 @@ def calculate_monthly_trends(expenses: List[Expense], months: int = 6) -> List[d
         
         trends.append({
             "month": month,
-            "total_expenses": data["total"],
+            "total_amount": data["total"],  # Changed from total_expenses
             "expense_count": data["count"],
             "categories": category_breakdown
         })

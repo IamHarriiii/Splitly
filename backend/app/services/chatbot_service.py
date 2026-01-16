@@ -216,3 +216,113 @@ def handle_clarification(
     session["parsed_expense"] = parsed_data
     
     return parsed_data
+
+
+def search_users_by_names(db: Session, names: List[str]) -> List[Dict[str, Any]]:
+    """
+    Search for users by first names.
+    Returns list of users with potential duplicates.
+    """
+    results = []
+    
+    for name in names:
+        # Case-insensitive search
+        users = db.query(User).filter(
+            User.name.ilike(f"%{name}%")
+        ).all()
+        
+        for user in users:
+            results.append({
+                "search_name": name,
+                "user_id": str(user.id),
+                "name": user.name,
+                "email": user.email
+            })
+    
+    return results
+
+
+def find_common_groups(
+    db: Session,
+    current_user_id: UUID,
+    participant_ids: List[UUID]
+) -> List[Dict[str, Any]]:
+    """
+    Find groups that contain current user and all participants.
+    """
+    # Get all groups current user is in
+    user_groups = db.query(GroupMember).filter(
+        GroupMember.user_id == current_user_id
+    ).all()
+    
+    user_group_ids = {m.group_id for m in user_groups}
+    
+    # Find groups that contain all participants
+    common_groups = []
+    
+    for group_id in user_group_ids:
+        # Check if all participants are in this group
+        members = db.query(GroupMember).filter(
+            GroupMember.group_id == group_id
+        ).all()
+        
+        member_ids = {m.user_id for m in members}
+        
+        # Check if all participants are members
+        if all(pid in member_ids for pid in participant_ids):
+            group = db.query(Group).filter(Group.id == group_id).first()
+            if group:
+                common_groups.append({
+                    "group_id": str(group.id),
+                    "group_name": group.name,
+                    "member_count": len(members)
+                })
+    
+    return common_groups
+
+
+def create_participant_conversation(
+    user_id: UUID,
+    parsed_data: Dict[str, Any]
+) -> str:
+    """
+    Create conversation state for participant-based expense.
+    """
+    from datetime import datetime
+    
+    session_id = f"participant_{user_id}_{datetime.now().timestamp()}"
+    
+    chatbot_sessions[session_id] = {
+        "user_id": str(user_id),
+        "step": "confirm_participants",
+        "data": {
+            "amount": parsed_data.get("amount"),
+            "description": parsed_data.get("description"),
+            "category": parsed_data.get("category"),
+            "date": parsed_data.get("date"),
+            "participant_names": parsed_data.get("participants", []),
+            "split_type": parsed_data.get("split_type", "equal"),
+            "participants": [],  # Will be filled after confirmation
+            "group_id": None,
+            "splits": []
+        },
+        "created_at": datetime.now().isoformat()
+    }
+    
+    return session_id
+
+
+def update_participant_conversation(
+    session_id: str,
+    step: str,
+    data_updates: Dict[str, Any]
+) -> bool:
+    """
+    Update participant conversation state.
+    """
+    if session_id not in chatbot_sessions:
+        return False
+    
+    chatbot_sessions[session_id]["step"] = step
+    chatbot_sessions[session_id]["data"].update(data_updates)
+    return True

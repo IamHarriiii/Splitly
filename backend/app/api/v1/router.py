@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import auth, groups, expenses, debts, settlements, analytics, activity, chatbot, users
+from app.api.v1.endpoints import auth, groups, expenses, debts, settlements, analytics, activity, chatbot, chatbot_participants, users
 
 api_router = APIRouter()
 
@@ -29,3 +29,6 @@ api_router.include_router(chatbot.router)
 
 # Include user search and invitations routes
 api_router.include_router(users.router)
+
+# Include chatbot participant workflow routes
+api_router.include_router(chatbot_participants.router)

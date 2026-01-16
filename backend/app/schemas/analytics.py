@@ -15,7 +15,7 @@ class CategoryBreakdown(BaseModel):
 class MonthlyTrend(BaseModel):
     """Monthly expense trend."""
     month: str  # Format: "2026-01"
-    total_expenses: float
+    total_amount: float  # Changed from total_expenses
     expense_count: int
     categories: List[CategoryBreakdown]
 
@@ -26,8 +26,8 @@ class UserFinancialSummary(BaseModel):
     user_name: str
     total_expenses: float
     total_paid: float
-    total_owed_to_user: float
-    total_user_owes: float
+    total_owed_to_you: float  # Changed from total_owed_to_user
+    total_you_owe: float  # Changed from total_user_owes
     net_balance: float
     expense_count: int
     group_count: int

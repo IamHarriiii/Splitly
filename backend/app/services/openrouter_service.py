@@ -83,10 +83,22 @@ Context:
 Extract the following fields:
 - amount: numeric value (required)
 - description: brief description (required)
-- category: expense category (optional, suggest from recent categories if applicable)
+- category: expense category (required - use classification rules below)
 - date: expense date in YYYY-MM-DD format (default to today if not specified)
 - participants: array of FIRST NAMES mentioned in the split (e.g., ["Teja", "Abdul"]) - IMPORTANT: Extract only first names
 - split_type: "equal", "exact", or "percentage" (infer from context, default to "equal")
+
+CATEGORY CLASSIFICATION RULES:
+1. Transport: train, bus, taxi, uber, flight, metro, subway, ticket (travel), cab, auto, rickshaw, parking, toll, gas, petrol
+2. Food: restaurant, dinner, lunch, breakfast, coffee, cafe, meal, snack, pizza, burger, eating, dine
+3. Groceries: groceries, supermarket, vegetables, fruits, market, provisions
+4. Entertainment: movie, cinema, concert, game, show, tickets (entertainment), theater, park
+5. Bills: electricity, water, rent, internet, phone, utilities, bill
+6. Healthcare: doctor, medicine, hospital, pharmacy, health, medical
+7. Shopping: clothes, shoes, electronics, gadgets, mall
+8. Other: anything else
+
+EXAMPLES: "train ticket"→Transport, "dinner"→Food, "groceries"→Groceries, "movie tickets"→Entertainment
 
 Respond ONLY with valid JSON in this exact format:
 {{

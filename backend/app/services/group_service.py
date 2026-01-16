@@ -49,26 +49,21 @@ def create_group(
         # Verify user exists
         user = db.query(User).filter(User.id == member_id).first()
         if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"User with ID {member_id} not found"
-            )
+            # Skip invalid user IDs instead of raising error
+            continue
         
         # Don't add creator again
         if member_id == creator_id:
             continue
             
-        # Create invitation for this user
-        invitation = Invitation(
+        # Add as member directly
+        member_membership = GroupMember(
             group_id=db_group.id,
-            inviter_id=creator_id,
-            invitee_email=user.email,
-            invitee_id=member_id,
-            status=InvitationStatus.PENDING,
-            token=str(uuid4()),
-            expires_at=datetime.utcnow() + timedelta(days=7)
+            user_id=member_id,
+            role=GroupMemberRole.MEMBER,
+            invited_by=creator_id
         )
-        db.add(invitation)
+        db.add(member_membership)
     
     db.commit()
     db.refresh(db_group)
