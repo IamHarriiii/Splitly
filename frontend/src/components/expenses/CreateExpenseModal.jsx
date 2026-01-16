@@ -20,6 +20,11 @@ export default function CreateExpenseModal({ isOpen, onClose, onSubmit, groups, 
   const [exactAmounts, setExactAmounts] = useState({});
   const [percentages, setPercentages] = useState({});
 
+  // Category autocomplete state
+  const [categoryInput, setCategoryInput] = useState('Food');
+  const [showCategorySuggestions, setShowCategorySuggestions] = useState(false);
+  const [filteredCategories, setFilteredCategories] = useState([]);
+
   const categories = getCategories();
 
   // Fetch group members when group is selected
@@ -48,6 +53,7 @@ export default function CreateExpenseModal({ isOpen, onClose, onSubmit, groups, 
       setAmount(initialData.amount.toString());
       setDescription(initialData.description);
       setCategory(initialData.category);
+      setCategoryInput(initialData.category);
       setDate(initialData.date || initialData.expense_date);
       setGroupId(initialData.group_id || '');
       setSplitType(initialData.split_type || 'equal');
@@ -56,6 +62,7 @@ export default function CreateExpenseModal({ isOpen, onClose, onSubmit, groups, 
       setAmount('');
       setDescription('');
       setCategory('Food');
+      setCategoryInput('Food');
       setDate(new Date().toISOString().split('T')[0]);
       setGroupId('');
       setSplitType('equal');
@@ -64,6 +71,30 @@ export default function CreateExpenseModal({ isOpen, onClose, onSubmit, groups, 
       setPercentages({});
     }
   }, [initialData, isOpen]);
+
+  // Handle category input change
+  const handleCategoryInputChange = (value) => {
+    setCategoryInput(value);
+    setCategory(value);
+
+    if (value.trim()) {
+      const filtered = categories.filter(cat =>
+        cat.toLowerCase().includes(value.toLowerCase())
+      );
+      setFilteredCategories(filtered);
+      setShowCategorySuggestions(true);
+    } else {
+      setFilteredCategories([]);
+      setShowCategorySuggestions(false);
+    }
+  };
+
+  // Select category from suggestions
+  const selectCategory = (cat) => {
+    setCategoryInput(cat);
+    setCategory(cat);
+    setShowCategorySuggestions(false);
+  };
 
   const toggleParticipant = (userId) => {
     if (selectedParticipants.includes(userId)) {
@@ -229,17 +260,50 @@ export default function CreateExpenseModal({ isOpen, onClose, onSubmit, groups, 
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
+            <div className="relative">
               <label className="block text-sm font-medium mb-1">Category</label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
+              <input
+                type="text"
+                value={categoryInput}
+                onChange={(e) => handleCategoryInputChange(e.target.value)}
+                onFocus={() => {
+                  if (categoryInput.trim()) {
+                    const filtered = categories.filter(cat =>
+                      cat.toLowerCase().includes(categoryInput.toLowerCase())
+                    );
+                    setFilteredCategories(filtered);
+                    setShowCategorySuggestions(true);
+                  }
+                }}
+                onBlur={() => {
+                  // Delay to allow click on suggestion
+                  setTimeout(() => setShowCategorySuggestions(false), 200);
+                }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {categories.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
+                placeholder="Type category (e.g., Food, Transport)"
+              />
+
+              {/* Suggestions Dropdown */}
+              {showCategorySuggestions && filteredCategories.length > 0 && (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                  {filteredCategories.map((cat) => (
+                    <div
+                      key={cat}
+                      onClick={() => selectCategory(cat)}
+                      className="px-3 py-2 hover:bg-blue-50 cursor-pointer transition-colors"
+                    >
+                      <span className="font-medium">{cat}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Custom category indicator */}
+              {categoryInput && !categories.includes(categoryInput) && (
+                <p className="text-xs text-blue-600 mt-1">
+                  ✨ Custom category: "{categoryInput}"
+                </p>
+              )}
             </div>
 
             <div>

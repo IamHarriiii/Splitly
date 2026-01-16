@@ -9,7 +9,12 @@ export default function ChatWindow({
   pendingExpense, 
   onConfirm, 
   onCancel,
-  isLoading 
+  isLoading,
+  // New props for inline cards
+  participantCard,
+  groupCard,
+  splitCard,
+  createGroupCard
 }) {
   const [input, setInput] = useState('');
   const messagesEndRef = useRef(null);
@@ -18,7 +23,7 @@ export default function ChatWindow({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  useEffect(scrollToBottom, [messages, pendingExpense]);
+  useEffect(scrollToBottom, [messages, pendingExpense, participantCard, groupCard, splitCard, createGroupCard]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -43,6 +48,18 @@ export default function ChatWindow({
             onCancel={onCancel}
           />
         )}
+
+        {/* Inline Participant Selection */}
+        {participantCard}
+
+        {/* Inline Group Selection */}
+        {groupCard}
+
+        {/* Inline Split Type Selection */}
+        {splitCard}
+
+        {/* Inline Create Group Form */}
+        {createGroupCard}
 
         {isLoading && (
           <div className="flex justify-start mb-4">
@@ -88,9 +105,10 @@ export default function ChatWindow({
           </button>
         </div>
         <p className="text-xs text-gray-500 mt-2">
-          Try: "I paid $50 for dinner" or "How much did I spend on food?"
+          Try: "I paid $50 for dinner" or "Split $100 between John and Mary"
         </p>
       </form>
     </div>
   );
 }
+

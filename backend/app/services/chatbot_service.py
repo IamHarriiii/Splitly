@@ -52,7 +52,8 @@ async def process_expense_input(
             category=parsed_data.get("category"),
             expense_date=parsed_data.get("date"),
             confidence=parsed_data.get("confidence", 0.5),
-            missing_fields=parsed_data.get("missing_fields", [])
+            missing_fields=parsed_data.get("missing_fields", []),
+            participants=parsed_data.get("participants", [])  # Include participants!
         )
         
         # Check if clarification is needed

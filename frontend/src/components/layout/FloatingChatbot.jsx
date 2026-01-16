@@ -1,14 +1,16 @@
 import { useState } from 'react';
-import { Bot, X, Minimize2 } from 'lucide-react';
+import { Bot, X } from 'lucide-react';
 import ChatWindow from '../chatbot/ChatWindow';
 import { sendMessage } from '../../services/chatbot';
 import { createExpense } from '../../services/expenses';
 import { useAuth } from '../../contexts/AuthContext';
-import ParticipantSelectionModal from '../chatbot/ParticipantSelectionModal';
-import GroupSelectionModal from '../chatbot/GroupSelectionModal';
-import SplitTypeModal from '../chatbot/SplitTypeModal';
-import axios from 'axios';
+import ParticipantSelectionCard from '../chatbot/ParticipantSelectionCard';
+import GroupSelectionCard from '../chatbot/GroupSelectionCard';
+import SplitTypeCard from '../chatbot/SplitTypeCard';
+import CreateGroupCard from '../chatbot/CreateGroupCard';
+import api from '../../services/api';
 import { useNavigate } from 'react-router-dom';
+import { createGroup } from '../../services/groups';
 
 export default function FloatingChatbot() {
   const navigate = useNavigate();
@@ -16,7 +18,7 @@ export default function FloatingChatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
-      text: "👋 Hi! I'm your AI expense assistant.\n\nI can help you:\n• Add expenses naturally (e.g., 'I paid $50 for dinner')\n• Answer spending questions (e.g., 'How much did I spend on food?')\n• Track your expenses and debts\n\nWhat would you like to do?",
+      text: "👋 Hi! I'm your AI expense assistant.\n\nI can help you:\n• Add expenses naturally (e.g., 'I paid $50 for dinner')\n• Split expenses (e.g., 'Split $100 between John and Mary')\n• Answer spending questions\n\nWhat would you like to do?",
       isUser: false,
       timestamp: new Date()
     }
@@ -26,9 +28,10 @@ export default function FloatingChatbot() {
 
   // Participant workflow state
   const [participantWorkflow, setParticipantWorkflow] = useState(null);
-  const [showParticipantModal, setShowParticipantModal] = useState(false);
-  const [showGroupModal, setShowGroupModal] = useState(false);
-  const [showSplitModal, setShowSplitModal] = useState(false);
+  const [showParticipantCard, setShowParticipantCard] = useState(false);
+  const [showGroupCard, setShowGroupCard] = useState(false);
+  const [showSplitCard, setShowSplitCard] = useState(false);
+  const [showCreateGroupCard, setShowCreateGroupCard] = useState(false);
   const [foundUsers, setFoundUsers] = useState([]);
   const [commonGroups, setCommonGroups] = useState([]);
 
@@ -66,7 +69,7 @@ export default function FloatingChatbot() {
         }]);
       } else {
         setMessages(prev => [...prev, {
-          text: "I'm not sure I understood that. Could you rephrase? Try saying something like 'I paid $50 for dinner' or 'How much did I spend this month?'",
+          text: "I'm not sure I understood that. Could you rephrase? Try saying something like 'I paid $50 for dinner' or 'Split $100 between John and Mary'",
           isUser: false,
           timestamp: new Date()
         }]);
@@ -74,7 +77,7 @@ export default function FloatingChatbot() {
     } catch (error) {
       console.error('Chatbot error:', error);
       setMessages(prev => [...prev, {
-        text: "Sorry, I encountered an error. Please try again or rephrase your message.",
+        text: "Sorry, I encountered an error. Please try again.",
         isUser: false,
         timestamp: new Date()
       }]);
@@ -115,7 +118,7 @@ export default function FloatingChatbot() {
     } catch (error) {
       console.error('Failed to create expense:', error);
       setMessages(prev => [...prev, {
-        text: "❌ Failed to create expense. Please try again or add it manually from the Expenses page.",
+        text: "❌ Failed to create expense. Please try again.",
         isUser: false,
         timestamp: new Date()
       }]);
@@ -135,9 +138,10 @@ export default function FloatingChatbot() {
 
   const handleParticipantWorkflow = async (parsedExpense) => {
     setParticipantWorkflow(parsedExpense);
+    setIsLoading(true);
 
     try {
-      const response = await axios.post('/api/v1/chatbot/search-participants', {
+      const response = await api.post('/chatbot/search-participants', {
         participant_names: parsedExpense.participants
       });
 
@@ -147,14 +151,15 @@ export default function FloatingChatbot() {
           isUser: false,
           timestamp: new Date()
         }]);
+        setIsLoading(false);
         return;
       }
 
       setFoundUsers(response.data.users);
-      setShowParticipantModal(true);
+      setShowParticipantCard(true);
 
       setMessages(prev => [...prev, {
-        text: `Found users for: ${parsedExpense.participants.join(', ')}. Please confirm the participants.`,
+        text: `Found users for: ${parsedExpense.participants.join(', ')}. Please select the correct ones below:`,
         isUser: false,
         timestamp: new Date()
       }]);
@@ -165,25 +170,28 @@ export default function FloatingChatbot() {
         isUser: false,
         timestamp: new Date()
       }]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleParticipantsConfirmed = async (participantIds) => {
-    setShowParticipantModal(false);
+    setShowParticipantCard(false);
+    setIsLoading(true);
 
     try {
-      const response = await axios.post('/api/v1/chatbot/find-groups', {
+      const response = await api.post('/chatbot/find-groups', {
         participant_ids: participantIds
       });
 
       setCommonGroups(response.data.common_groups);
       setParticipantWorkflow(prev => ({ ...prev, participant_ids: participantIds }));
-      setShowGroupModal(true);
+      setShowGroupCard(true);
 
       setMessages(prev => [...prev, {
         text: response.data.common_groups.length > 0
-          ? `Found ${response.data.common_groups.length} common group(s). Please select one.`
-          : 'No common groups found. You can create a new group.',
+          ? `Great! Found ${response.data.common_groups.length} group(s). Select one below:`
+          : 'No common groups found. You can create a new group:',
         isUser: false,
         timestamp: new Date()
       }]);
@@ -194,13 +202,15 @@ export default function FloatingChatbot() {
         isUser: false,
         timestamp: new Date()
       }]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleGroupSelected = (groupId) => {
-    setShowGroupModal(false);
+    setShowGroupCard(false);
     setParticipantWorkflow(prev => ({ ...prev, group_id: groupId }));
-    setShowSplitModal(true);
+    setShowSplitCard(true);
 
     setMessages(prev => [...prev, {
       text: 'How would you like to split this expense?',
@@ -210,11 +220,11 @@ export default function FloatingChatbot() {
   };
 
   const handleSplitTypeSelected = async (splitType) => {
-    setShowSplitModal(false);
+    setShowSplitCard(false);
     setIsLoading(true);
 
     try {
-      await axios.post('/api/v1/chatbot/create-group-expense', {
+      await api.post('/chatbot/create-group-expense', {
         amount: participantWorkflow.amount,
         description: participantWorkflow.description,
         category: participantWorkflow.category || 'Other',
@@ -225,7 +235,7 @@ export default function FloatingChatbot() {
       });
 
       setMessages(prev => [...prev, {
-        text: `✅ Group expense created successfully with ${splitType} split! Anything else I can help with?`,
+        text: `✅ Group expense created successfully with ${splitType} split! Anything else?`,
         isUser: false,
         timestamp: new Date()
       }]);
@@ -234,7 +244,7 @@ export default function FloatingChatbot() {
     } catch (error) {
       console.error('Failed to create group expense:', error);
       setMessages(prev => [...prev, {
-        text: '❌ Failed to create group expense. Please try again or add it manually.',
+        text: '❌ Failed to create group expense. Please try again.',
         isUser: false,
         timestamp: new Date()
       }]);
@@ -244,16 +254,54 @@ export default function FloatingChatbot() {
   };
 
   const handleCreateNewGroup = () => {
-    setShowGroupModal(false);
+    setShowGroupCard(false);
+    setShowCreateGroupCard(true);
     setMessages(prev => [...prev, {
-      text: 'Redirecting you to create a new group...',
+      text: 'Fill in the details to create a new group:',
       isUser: false,
       timestamp: new Date()
     }]);
-    setTimeout(() => {
-      setIsOpen(false);
-      navigate('/groups');
-    }, 1000);
+  };
+
+  const handleGroupCreated = async (groupData) => {
+    setShowCreateGroupCard(false);
+    setIsLoading(true);
+
+    try {
+      const newGroup = await createGroup(groupData);
+
+      setMessages(prev => [...prev, {
+        text: `✅ Group "${groupData.name}" created! Now select split type:`,
+        isUser: false,
+        timestamp: new Date()
+      }]);
+
+      // Set the new group and proceed to split type selection
+      setParticipantWorkflow(prev => ({ ...prev, group_id: newGroup.id }));
+      setShowSplitCard(true);
+    } catch (error) {
+      console.error('Failed to create group:', error);
+      setMessages(prev => [...prev, {
+        text: '❌ Failed to create group. Please try again.',
+        isUser: false,
+        timestamp: new Date()
+      }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const cancelWorkflow = () => {
+    setShowParticipantCard(false);
+    setShowGroupCard(false);
+    setShowSplitCard(false);
+    setShowCreateGroupCard(false);
+    setParticipantWorkflow(null);
+    setMessages(prev => [...prev, {
+      text: 'Cancelled. What else can I help you with?',
+      isUser: false,
+      timestamp: new Date()
+    }]);
   };
 
   return (
@@ -271,9 +319,7 @@ export default function FloatingChatbot() {
       {isOpen && (
         <div 
           className="fixed bottom-6 right-6 w-[400px] h-[600px] bg-white rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 fade-in duration-300"
-          style={{ 
-            transformOrigin: 'bottom right',
-          }}
+          style={{ transformOrigin: 'bottom right' }}
         >
           {/* Header */}
           <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 flex items-center justify-between">
@@ -303,32 +349,38 @@ export default function FloatingChatbot() {
               onConfirm={handleConfirm}
               onCancel={handleCancel}
               isLoading={isLoading}
+              participantCard={showParticipantCard && (
+                <ParticipantSelectionCard
+                  users={foundUsers}
+                  onConfirm={handleParticipantsConfirmed}
+                  onCancel={cancelWorkflow}
+                />
+              )}
+              groupCard={showGroupCard && (
+                <GroupSelectionCard
+                  groups={commonGroups}
+                  onSelect={handleGroupSelected}
+                  onCancel={cancelWorkflow}
+                  onCreateNew={handleCreateNewGroup}
+                />
+              )}
+              splitCard={showSplitCard && (
+                <SplitTypeCard
+                  onSelect={handleSplitTypeSelected}
+                  onCancel={cancelWorkflow}
+                />
+              )}
+              createGroupCard={showCreateGroupCard && (
+                <CreateGroupCard
+                  onSubmit={handleGroupCreated}
+                  onCancel={cancelWorkflow}
+                />
+              )}
             />
           </div>
         </div>
       )}
-
-      {/* Participant Workflow Modals */}
-      <ParticipantSelectionModal
-        isOpen={showParticipantModal}
-        users={foundUsers}
-        onConfirm={handleParticipantsConfirmed}
-        onClose={() => setShowParticipantModal(false)}
-      />
-
-      <GroupSelectionModal
-        isOpen={showGroupModal}
-        groups={commonGroups}
-        onSelect={handleGroupSelected}
-        onClose={() => setShowGroupModal(false)}
-        onCreateNew={handleCreateNewGroup}
-      />
-
-      <SplitTypeModal
-        isOpen={showSplitModal}
-        onSelect={handleSplitTypeSelected}
-        onClose={() => setShowSplitModal(false)}
-      />
     </>
   );
 }
+

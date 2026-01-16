@@ -20,6 +20,11 @@ export const deleteExpense = async (expenseId) => {
   await api.delete(`/expenses/${expenseId}`);
 };
 
+export const getExpenseSplits = async (expenseId) => {
+  const response = await api.get(`/expenses/${expenseId}/splits`);
+  return response.data;
+};
+
 export const getCategories = () => {
-  return ['Food', 'Transport', 'Entertainment', 'Shopping', 'Bills', 'Healthcare', 'Other'];
+  return ['Food', 'Transport', 'Groceries', 'Entertainment', 'Shopping', 'Bills', 'Healthcare', 'Other'];
 };

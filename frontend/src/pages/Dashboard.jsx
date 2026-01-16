@@ -207,8 +207,22 @@ export default function Dashboard() {
           <CategoryChart data={categoryBreakdown} />
         </div>
 
-        {/* Recent Transactions */}
-        <RecentTransactions expenses={recentExpenses} />
+        {/* Recent Transactions - Split into Personal and Group */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Personal Expenses */}
+          <RecentTransactions
+            expenses={recentExpenses.filter(exp => exp.is_personal || !exp.group_id)}
+            title="Personal Expenses"
+            emptyMessage="No personal expenses yet"
+          />
+
+          {/* Group Expenses */}
+          <RecentTransactions
+            expenses={recentExpenses.filter(exp => !exp.is_personal && exp.group_id)}
+            title="Group Expenses"
+            emptyMessage="No group expenses yet"
+          />
+        </div>
       </main>
     </div>
   );

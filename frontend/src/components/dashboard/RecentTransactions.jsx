@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { X, Receipt, Calendar, DollarSign, User, Users, Tag, Clock, ChevronRight } from 'lucide-react';
 
-export default function RecentTransactions({ expenses = [] }) {
+export default function RecentTransactions({ expenses = [], title = "Recent Transactions", emptyMessage = "No recent transactions" }) {
   const [selectedTransaction, setSelectedTransaction] = useState(null);
 
   // Ensure expenses is an array
@@ -57,9 +57,9 @@ export default function RecentTransactions({ expenses = [] }) {
       <div className="bg-white rounded-lg shadow-md p-6">
         <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
           <Receipt size={22} className="text-blue-600" />
-          Recent Transactions
+          {title}
         </h2>
-        <p className="text-gray-500 text-center py-8">No recent transactions</p>
+        <p className="text-gray-500 text-center py-8">{emptyMessage}</p>
       </div>
     );
   }
@@ -68,7 +68,7 @@ export default function RecentTransactions({ expenses = [] }) {
     <div className="bg-white rounded-lg shadow-md p-6">
       <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
         <Receipt size={22} className="text-blue-600" />
-        Recent Transactions
+        {title}
       </h2>
       <div className="space-y-2">
         {expensesList.map((expense) => {

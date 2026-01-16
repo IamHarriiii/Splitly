@@ -1,23 +1,27 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Users, DollarSign, UserPlus, TrendingUp, Edit, Trash2, X, Calendar, User, Tag, Clock, Receipt } from 'lucide-react';
+import { ArrowLeft, Users, DollarSign, UserPlus, TrendingUp, Edit, Trash2, X, Calendar, User, Tag, Clock, Receipt, Plus, CheckCircle2, XCircle } from 'lucide-react';
 import { getGroupDetails, updateGroup, deleteGroup } from '../services/groups';
-import { getExpenses } from '../services/expenses';
+import { getExpenses, createExpense, getExpenseSplits } from '../services/expenses';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import AddMemberModal from '../components/groups/AddMemberModal';
 import CreateGroupModal from '../components/groups/CreateGroupModal';
 import DeleteGroupModal from '../components/groups/DeleteGroupModal';
+import CreateExpenseModal from '../components/expenses/CreateExpenseModal';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function GroupDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [group, setGroup] = useState(null);
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showAddExpenseModal, setShowAddExpenseModal] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState(null);
 
@@ -30,10 +34,32 @@ export default function GroupDetails() {
       setLoading(true);
       const [groupData, expensesData] = await Promise.all([
         getGroupDetails(id),
-        getExpenses({ group_id: id, limit: 10 })
+        getExpenses({ group_id: id, limit: 10, include_splits: true })
       ]);
+
+      const expensesList = Array.isArray(expensesData) ? expensesData : (expensesData.data || []);
+
+      // Fetch splits for each expense
+      const expensesWithSplits = await Promise.all(
+        expensesList.map(async (expense) => {
+          try {
+            const splits = await getExpenseSplits(expense.id);
+            return { ...expense, splits: splits || [] };
+          } catch (error) {
+            console.error(`Failed to fetch splits for expense ${expense.id}:`, error);
+            return { ...expense, splits: [] };
+          }
+        })
+      );
+
       setGroup(groupData);
-      setExpenses(Array.isArray(expensesData) ? expensesData : (expensesData.data || []));
+      setExpenses(expensesWithSplits);
+
+      // Debug logging
+      console.log('Group Data:', groupData);
+      console.log('Group created_by:', groupData.created_by);
+      console.log('Current user:', user);
+      console.log('Expenses with splits:', expensesWithSplits);
     } catch (error) {
       console.error('Failed to fetch group data:', error);
     } finally {
@@ -60,6 +86,19 @@ export default function GroupDetails() {
       console.error('Failed to delete group:', error);
     } finally {
       setDeleteLoading(false);
+    }
+  };
+
+  const handleCreateExpense = async (data) => {
+    try {
+      await createExpense({
+        ...data,
+        group_id: id,
+      });
+      setShowAddExpenseModal(false);
+      fetchGroupData();
+    } catch (error) {
+      console.error('Failed to create expense:', error);
     }
   };
 
@@ -145,20 +184,33 @@ export default function GroupDetails() {
                   variant="ghost"
                   size="sm"
                   className="text-white hover:bg-white/20"
-                  onClick={() => setShowEditModal(true)}
+                  onClick={() => setShowAddExpenseModal(true)}
                 >
-                  <Edit size={18} className="mr-2" />
-                  Edit
+                  <Plus size={18} className="mr-2" />
+                  Add Expense
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-white hover:bg-red-500/30"
-                  onClick={() => setShowDeleteModal(true)}
-                >
-                  <Trash2 size={18} className="mr-2" />
-                  Delete
-                </Button>
+                {group.created_by === user?.id && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-white hover:bg-white/20"
+                      onClick={() => setShowEditModal(true)}
+                    >
+                      <Edit size={18} className="mr-2" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-white hover:bg-red-500/30"
+                      onClick={() => setShowDeleteModal(true)}
+                    >
+                      <Trash2 size={18} className="mr-2" />
+                      Delete
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </CardHeader>
@@ -278,6 +330,97 @@ export default function GroupDetails() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Payment Status Section */}
+          {expenses.length > 0 && (
+            <Card className="border-0 shadow-xl">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Receipt size={24} />
+                  Payment Status
+                </CardTitle>
+                <p className="text-sm text-gray-600">Track who has paid and who hasn't for each expense</p>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {expenses.map((expense) => (
+                    <div key={expense.id} className="border border-gray-200 rounded-lg p-4">
+                      {/* Expense Header */}
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <h4 className="font-semibold text-gray-900">{expense.description}</h4>
+                          <p className="text-sm text-gray-600">
+                            ${expense.amount?.toFixed(2)} • {new Date(expense.date).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Payment Status */}
+                      <div className="space-y-2">
+                        {expense.splits && expense.splits.length > 0 ? (
+                          <>
+                            {/* Paid Members */}
+                            <div>
+                              <p className="text-xs font-medium text-green-700 mb-2 flex items-center gap-1">
+                                <CheckCircle2 size={14} />
+                                Paid ({expense.splits.filter(s => s.is_settled).length})
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                {expense.splits
+                                  .filter(split => split.is_settled)
+                                  .map((split, idx) => (
+                                    <div
+                                      key={idx}
+                                      className="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-full"
+                                    >
+                                      <CheckCircle2 size={14} className="text-green-600" />
+                                      <span className="text-sm text-green-700">
+                                        {split.user_name || 'Unknown'} - ${split.share_amount?.toFixed(2)}
+                                      </span>
+                                    </div>
+                                  ))}
+                                {expense.splits.filter(s => s.is_settled).length === 0 && (
+                                  <p className="text-sm text-gray-500">None</p>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Unpaid Members */}
+                            <div>
+                              <p className="text-xs font-medium text-red-700 mb-2 flex items-center gap-1">
+                                <XCircle size={14} />
+                                Yet to Pay ({expense.splits.filter(s => !s.is_settled).length})
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                {expense.splits
+                                  .filter(split => !split.is_settled)
+                                  .map((split, idx) => (
+                                    <div
+                                      key={idx}
+                                      className="flex items-center gap-2 px-3 py-1.5 bg-red-50 border border-red-200 rounded-full"
+                                    >
+                                      <XCircle size={14} className="text-red-600" />
+                                      <span className="text-sm text-red-700">
+                                        {split.user_name || 'Unknown'} - ${split.share_amount?.toFixed(2)}
+                                      </span>
+                                    </div>
+                                  ))}
+                                {expense.splits.filter(s => !s.is_settled).length === 0 && (
+                                  <p className="text-sm text-gray-500">All settled!</p>
+                                )}
+                              </div>
+                            </div>
+                          </>
+                        ) : (
+                          <p className="text-sm text-gray-500">No split information available</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
 
@@ -436,6 +579,14 @@ export default function GroupDetails() {
           </div>
         </div>
       )}
+
+      {/* Add Expense Modal */}
+      <CreateExpenseModal
+        isOpen={showAddExpenseModal}
+        onClose={() => setShowAddExpenseModal(false)}
+        onSubmit={handleCreateExpense}
+        groups={[group]}
+      />
     </div>
   );
 }
