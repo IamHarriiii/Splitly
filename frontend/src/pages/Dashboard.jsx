@@ -7,6 +7,7 @@ import { Button } from '../components/ui/button';
 import MonthlyTrendChart from '../components/dashboard/MonthlyTrendChart';
 import CategoryChart from '../components/dashboard/CategoryChart';
 import RecentTransactions from '../components/dashboard/RecentTransactions';
+import ActivityFeed from '../components/dashboard/ActivityFeed';
 import { DollarSign, TrendingUp, TrendingDown, Users, Plus, Receipt, Bot, Sparkles } from 'lucide-react';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 
@@ -207,8 +208,8 @@ export default function Dashboard() {
           <CategoryChart data={categoryBreakdown} />
         </div>
 
-        {/* Recent Transactions - Split into Personal and Group */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Transactions + Activity Feed */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Personal Expenses */}
           <RecentTransactions
             expenses={recentExpenses.filter(exp => exp.is_personal || !exp.group_id)}
@@ -222,6 +223,9 @@ export default function Dashboard() {
             title="Group Expenses"
             emptyMessage="No group expenses yet"
           />
+
+          {/* Activity Feed - Uses backend /activity/feed endpoint */}
+          <ActivityFeed />
         </div>
       </main>
     </div>

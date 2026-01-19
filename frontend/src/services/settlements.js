@@ -20,8 +20,8 @@ export const recordPayment = async (data) => {
   return response.data;
 };
 
-export const getSettlementHistory = async () => {
-  const response = await api.get('/settlements/history');
+export const getSettlementHistory = async (page = 1, limit = 20) => {
+  const response = await api.get(`/settlements/history?page=${page}&limit=${limit}`);
   return response.data;
 };
 

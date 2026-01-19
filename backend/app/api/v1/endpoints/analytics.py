@@ -12,6 +12,9 @@ from app.schemas.analytics import (
 from app.services import analytics_service
 from app.utils.dependencies import get_current_user
 from app.models.user import User
+from app.models.expense import Expense, ExpenseSplit
+from app.models.debt_balance import DebtBalance
+from app.models.group import GroupMember
 
 router = APIRouter(prefix="/analytics", tags=["Analytics & Dashboard"])
 
@@ -75,11 +78,7 @@ def get_quick_summary(
     
     Returns key metrics without detailed breakdowns.
     Useful for quick checks or mobile apps.
-    """
-    from app.models.expense import Expense, ExpenseSplit
-    from app.models.debt_balance import DebtBalance
-    from app.models.group import GroupMember
-    
+    """    
     # Get total expenses
     user_expenses = db.query(Expense).filter(
         (Expense.created_by == current_user.id) |

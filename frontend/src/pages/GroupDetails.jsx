@@ -10,6 +10,8 @@ import CreateGroupModal from '../components/groups/CreateGroupModal';
 import DeleteGroupModal from '../components/groups/DeleteGroupModal';
 import CreateExpenseModal from '../components/expenses/CreateExpenseModal';
 import GroupDebtSummary from '../components/groups/GroupDebtSummary';
+import GroupActivityFeed from '../components/groups/GroupActivityFeed';
+import GroupAnalytics from '../components/groups/GroupAnalytics';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function GroupDetails() {
@@ -340,6 +342,11 @@ export default function GroupDetails() {
             <GroupDebtSummary groupId={id} refreshTrigger={expensesVersion} />
           </div>
 
+          {/* Group Analytics - Uses backend /analytics/groups/{id} endpoint */}
+          <div className="md:col-span-2 lg:col-span-2">
+            <GroupAnalytics groupId={id} />
+          </div>
+
           {/* Payment Status Section */}
           {expenses.length > 0 && (
             <Card className="border-0 shadow-xl">
@@ -430,6 +437,9 @@ export default function GroupDetails() {
               </CardContent>
             </Card>
           )}
+
+          {/* Group Activity Feed - Uses backend /activity/groups/{id} endpoint */}
+          <GroupActivityFeed groupId={id} />
         </div>
       </div>
 

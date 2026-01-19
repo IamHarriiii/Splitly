@@ -47,8 +47,8 @@ export default function Expenses() {
   const handleUpdateExpense = async (data) => {
     if (!editingExpense) return;
     await updateExpense(editingExpense.id, data);
+    await fetchData();  // Wait for refresh to complete before modal closes
     setEditingExpense(null);
-    fetchData();
   };
 
   const handleDeleteExpense = async () => {

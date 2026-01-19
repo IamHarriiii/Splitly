@@ -211,10 +211,10 @@ export default function CreateExpenseModal({ isOpen, onClose, onSubmit, groups, 
         paid_by: paidBy || user.id,
         splits: splits
       });
-      toast.success('Expense created successfully');
+      toast.success(initialData ? 'Expense updated successfully' : 'Expense created successfully');
       onClose();
     } catch (error) {
-      console.error('Expense creation error:', error);
+      console.error('Expense submission error:', error);
       const errorMessage = error.response?.data?.detail
         ? JSON.stringify(error.response.data.detail)
         : 'Failed to save expense. Please try again.';
@@ -338,12 +338,19 @@ export default function CreateExpenseModal({ isOpen, onClose, onSubmit, groups, 
                 value={groupId}
                 onChange={(e) => setGroupId(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={groups.length === 1}
               >
-                <option value="">Personal Expense</option>
+                {/* Only show Personal Expense option if NOT opened from single group context */}
+                {groups.length !== 1 && (
+                  <option value="">Personal Expense</option>
+                )}
                 {groups.map(group => (
                   <option key={group.id} value={group.id}>{group.name}</option>
                 ))}
               </select>
+              {groups.length === 1 && (
+                <p className="text-xs text-blue-600 mt-1">This expense will be added to {groups[0].name}</p>
+              )}
             </div>
 
             {groupId && groupMembers.length > 0 && (

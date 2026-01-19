@@ -6,12 +6,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button';
 import DebtCard from '../components/settlements/DebtCard';
 import SettleUpModal from '../components/settlements/SettleUpModal';
+import SettlementHistory from '../components/settlements/SettlementHistory';
 
 export default function Settlements() {
   const navigate = useNavigate();
   const [debts, setDebts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [settlingDebt, setSettlingDebt] = useState(null);
+  // Use backend pre-computed values instead of recalculating
+  const [totalOwed, setTotalOwed] = useState(0);
+  const [totalToReceive, setTotalToReceive] = useState(0);
+  const [netBalance, setNetBalance] = useState(0);
 
   useEffect(() => {
     fetchDebts();
@@ -22,6 +27,10 @@ export default function Settlements() {
       setLoading(true);
       const data = await getDebtSummary();
       setDebts(data.debts || []);
+      // Use backend pre-computed values directly
+      setTotalOwed(data.total_i_owe || 0);
+      setTotalToReceive(data.total_owed_to_me || 0);
+      setNetBalance(data.net_balance || 0);
     } catch (error) {
       console.error('Failed to fetch debts:', error);
     } finally {
@@ -34,16 +43,6 @@ export default function Settlements() {
     setSettlingDebt(null);
     fetchDebts();
   };
-
-  const totalOwed = debts
-    .filter(d => d.amount < 0)
-    .reduce((sum, d) => sum + Math.abs(d.amount), 0);
-
-  const totalToReceive = debts
-    .filter(d => d.amount > 0)
-    .reduce((sum, d) => sum + d.amount, 0);
-
-  const netBalance = totalToReceive - totalOwed;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -119,6 +118,9 @@ export default function Settlements() {
               />
             ))}
           </div>
+
+              {/* Settlement History - Uses backend /settlements/history endpoint */}
+              <SettlementHistory />
         </div>
       )}
 
