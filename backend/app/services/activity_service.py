@@ -88,7 +88,7 @@ def get_user_activity_feed(
     
     # Apply pagination
     offset = (page - 1) * limit
-    activities = query.order_by(ActivityLog.created_at.desc()).offset(offset).limit(limit).all()
+    activities = query.order_by(ActivityLog.timestamp.desc()).offset(offset).limit(limit).all()
     
     return activities, total_count
 
@@ -134,7 +134,7 @@ def get_group_activity_feed(
     
     # Apply pagination
     offset = (page - 1) * limit
-    activities = query.order_by(ActivityLog.created_at.desc()).offset(offset).limit(limit).all()
+    activities = query.order_by(ActivityLog.timestamp.desc()).offset(offset).limit(limit).all()
     
     return activities, total_count
 
