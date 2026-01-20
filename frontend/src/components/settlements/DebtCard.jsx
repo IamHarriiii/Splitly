@@ -29,7 +29,7 @@ export default function DebtCard({ debt, onSettle }) {
           <p className={`text-3xl font-bold mb-2 ${
             isOwed ? 'text-green-600' : 'text-red-600'
           }`}>
-            ${parseFloat(debt.amount).toFixed(2)}
+            ${Math.abs(parseFloat(debt.amount)).toFixed(2)}
           </p>
           <button
             onClick={() => onSettle(debt)}
