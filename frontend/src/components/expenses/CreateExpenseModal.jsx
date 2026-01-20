@@ -81,14 +81,20 @@ export default function CreateExpenseModal({ isOpen, onClose, onSubmit, groups, 
       setCategory('Food');
       setCategoryInput('Food');
       setDate(new Date().toISOString().split('T')[0]);
-      setGroupId('');
+      // Only reset groupId if NOT in forceGroupContext mode
+      if (!forceGroupContext) {
+        setGroupId('');
+      } else if (groups && groups.length === 1) {
+        // In forceGroupContext, set to the single group
+        setGroupId(groups[0].id);
+      }
       setPaidBy(user.id);
       setSplitType('equal');
       setSelectedParticipants([]);
       setExactAmounts({});
       setPercentages({});
     }
-  }, [initialData, isOpen]);
+  }, [initialData, isOpen, forceGroupContext, groups]);
 
   // Handle category input change
   const handleCategoryInputChange = (value) => {
