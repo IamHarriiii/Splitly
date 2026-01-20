@@ -370,6 +370,10 @@ def create_settlement(
     )
     db.add(settlement)
     
+    # Convert amount to Decimal for database operations
+    from decimal import Decimal
+    settlement_amount = Decimal(str(settlement_data.amount))
+    
     # Update debt balances
     # Find debt from payer to receiver
     debt = db.query(DebtBalance).filter(
@@ -377,14 +381,15 @@ def create_settlement(
         DebtBalance.user_from == payer_id,
         DebtBalance.user_to == settlement_data.receiver_id
     ).first()
+
     
     if debt:
-        if debt.amount > settlement_data.amount:
+        if debt.amount > settlement_amount:
             # Reduce the debt
-            debt.amount -= settlement_data.amount
-        elif debt.amount < settlement_data.amount:
+            debt.amount -= settlement_amount
+        elif debt.amount < settlement_amount:
             # Overpaid - create reverse debt
-            overpayment = settlement_data.amount - debt.amount
+            overpayment = settlement_amount - debt.amount
             db.delete(debt)
             
             # Check if reverse debt exists
@@ -416,13 +421,13 @@ def create_settlement(
         ).first()
         
         if reverse_debt:
-            reverse_debt.amount += settlement_data.amount
+            reverse_debt.amount += settlement_amount
         else:
             new_debt = DebtBalance(
                 group_id=settlement_data.group_id,
                 user_from=settlement_data.receiver_id,
                 user_to=payer_id,
-                amount=settlement_data.amount
+                amount=settlement_amount
             )
             db.add(new_debt)
     
