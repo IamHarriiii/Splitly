@@ -266,3 +266,78 @@ def log_settlement_created(
         group_id=group_id,
         metadata={"amount": amount, "receiver_name": receiver_name}
     )
+
+
+def log_expense_updated(
+    db: Session,
+    user_id: UUID,
+    expense_id: UUID,
+    group_id: Optional[UUID],
+    description: str
+):
+    """Log expense update."""
+    return log_activity(
+        db=db,
+        user_id=user_id,
+        action=ActionType.EXPENSE_UPDATED,
+        entity_type=EntityType.EXPENSE,
+        entity_id=expense_id,
+        group_id=group_id,
+        metadata={"description": description}
+    )
+
+
+def log_expense_deleted(
+    db: Session,
+    user_id: UUID,
+    expense_id: UUID,
+    group_id: Optional[UUID],
+    description: str
+):
+    """Log expense deletion."""
+    return log_activity(
+        db=db,
+        user_id=user_id,
+        action=ActionType.EXPENSE_DELETED,
+        entity_type=EntityType.EXPENSE,
+        entity_id=expense_id,
+        group_id=group_id,
+        metadata={"description": description}
+    )
+
+
+def log_group_updated(
+    db: Session,
+    user_id: UUID,
+    group_id: UUID,
+    group_name: str
+):
+    """Log group update."""
+    return log_activity(
+        db=db,
+        user_id=user_id,
+        action=ActionType.GROUP_UPDATED,
+        entity_type=EntityType.GROUP,
+        entity_id=group_id,
+        group_id=group_id,
+        metadata={"group_name": group_name}
+    )
+
+
+def log_group_deleted(
+    db: Session,
+    user_id: UUID,
+    group_id: UUID,
+    group_name: str
+):
+    """Log group deletion."""
+    return log_activity(
+        db=db,
+        user_id=user_id,
+        action=ActionType.GROUP_DELETED,
+        entity_type=EntityType.GROUP,
+        entity_id=group_id,
+        group_id=None,  # Group is being deleted
+        metadata={"group_name": group_name}
+    )
+

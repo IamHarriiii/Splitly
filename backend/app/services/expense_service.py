@@ -425,6 +425,18 @@ def update_expense(
     db.commit()
     db.refresh(expense)
     
+    # Log activity
+    try:
+        activity_service.log_expense_updated(
+            db=db,
+            user_id=current_user_id,
+            expense_id=expense.id,
+            group_id=expense.group_id,
+            description=expense.description
+        )
+    except Exception as e:
+        print(f"Failed to log expense update activity: {e}")
+    
     return expense
 
 
@@ -460,6 +472,11 @@ def delete_expense(
             detail="Only the creator can delete an expense"
         )
     
+    # Store expense info before deletion for logging
+    expense_id_for_log = expense.id
+    expense_group_id = expense.group_id
+    expense_description = expense.description
+    
     # Reverse debt balance updates if group expense
     if expense.group_id:
         splits = db.query(ExpenseSplit).filter(ExpenseSplit.expense_id == expense_id).all()
@@ -469,3 +486,15 @@ def delete_expense(
     # Delete expense (cascade will handle splits)
     db.delete(expense)
     db.commit()
+    
+    # Log activity
+    try:
+        activity_service.log_expense_deleted(
+            db=db,
+            user_id=current_user_id,
+            expense_id=expense_id_for_log,
+            group_id=expense_group_id,
+            description=expense_description
+        )
+    except Exception as e:
+        print(f"Failed to log expense delete activity: {e}")

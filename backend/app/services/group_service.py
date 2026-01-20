@@ -9,6 +9,7 @@ from app.models.user import User
 from app.models.group import Group, GroupMember, GroupMemberRole
 from app.models.invitation import Invitation, InvitationStatus
 from app.schemas.group import GroupCreate, GroupUpdate
+from app.services import activity_service
 
 
 def create_group(
@@ -67,6 +68,17 @@ def create_group(
     
     db.commit()
     db.refresh(db_group)
+    
+    # Log activity
+    try:
+        activity_service.log_group_created(
+            db=db,
+            user_id=creator_id,
+            group_id=db_group.id,
+            group_name=db_group.name
+        )
+    except Exception as e:
+        print(f"Failed to log group creation activity: {e}")
     
     return db_group
 
@@ -196,6 +208,17 @@ def update_group(
     db.commit()
     db.refresh(group)
     
+    # Log activity
+    try:
+        activity_service.log_group_updated(
+            db=db,
+            user_id=current_user_id,
+            group_id=group.id,
+            group_name=group.name
+        )
+    except Exception as e:
+        print(f"Failed to log group update activity: {e}")
+    
     return group
 
 
@@ -236,9 +259,24 @@ def delete_group(
             detail="Only group owner can delete group"
         )
     
+    # Store group info before deletion for logging
+    group_id_for_log = group.id
+    group_name = group.name
+    
     # Delete group (cascade will handle related records)
     db.delete(group)
     db.commit()
+    
+    # Log activity
+    try:
+        activity_service.log_group_deleted(
+            db=db,
+            user_id=current_user_id,
+            group_id=group_id_for_log,
+            group_name=group_name
+        )
+    except Exception as e:
+        print(f"Failed to log group deletion activity: {e}")
 
 
 def add_member(
@@ -345,6 +383,20 @@ def add_member(
     
     db.commit()
     db.refresh(invitation)
+    
+    # Log activity for member added (only if immediately added)
+    if invitee_id:
+        try:
+            user = db.query(User).filter(User.id == invitee_id).first()
+            activity_service.log_member_added(
+                db=db,
+                user_id=inviter_id,
+                group_id=group_id,
+                member_id=invitee_id,
+                member_name=user.name if user else "Unknown"
+            )
+        except Exception as e:
+            print(f"Failed to log member added activity: {e}")
     
     return invitation
 
