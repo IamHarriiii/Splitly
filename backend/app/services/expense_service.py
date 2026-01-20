@@ -11,6 +11,7 @@ from app.models.group import Group, GroupMember
 from app.models.expense import Expense, ExpenseSplit
 from app.models.debt_balance import DebtBalance
 from app.schemas.expense import ExpenseCreate, ExpenseUpdate, SplitType
+from app.services import activity_service
 
 
 def calculate_splits(
@@ -226,6 +227,20 @@ def create_expense(
     
     db.commit()
     db.refresh(db_expense)
+    
+    # Log activity
+    try:
+        activity_service.log_expense_created(
+            db=db,
+            user_id=creator_id,
+            expense_id=db_expense.id,
+            group_id=expense_data.group_id,
+            amount=expense_data.amount,
+            description=expense_data.description
+        )
+    except Exception as e:
+        # Don't fail the expense creation if activity logging fails
+        print(f"Failed to log expense activity: {e}")
     
     return db_expense
 

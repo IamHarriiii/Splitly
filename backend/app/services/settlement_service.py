@@ -11,6 +11,7 @@ from app.models.settlement import Settlement
 from app.models.debt_balance import DebtBalance
 from app.models.expense import Expense, ExpenseSplit
 from app.schemas.settlement import SettlementCreate, SimplifiedDebt
+from app.services import activity_service
 
 
 def calculate_net_balances(group_id: UUID, db: Session) -> Dict[UUID, float]:
@@ -423,6 +424,20 @@ def create_settlement(
     
     db.commit()
     db.refresh(settlement)
+    
+    # Log activity
+    try:
+        receiver = db.query(User).filter(User.id == settlement_data.receiver_id).first()
+        activity_service.log_settlement_created(
+            db=db,
+            user_id=payer_id,
+            settlement_id=settlement.id,
+            group_id=settlement_data.group_id,
+            amount=settlement_data.amount,
+            receiver_name=receiver.name if receiver else "Unknown"
+        )
+    except Exception as e:
+        print(f"Failed to log settlement activity: {e}")
     
     return settlement
 

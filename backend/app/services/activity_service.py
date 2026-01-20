@@ -7,7 +7,7 @@ from datetime import datetime
 from app.models.activity_log import ActivityLog, ActionType, EntityType
 from app.models.user import User
 from app.models.group import Group, GroupMember
-
+from fastapi import HTTPException, status
 
 def log_activity(
     db: Session,
@@ -113,7 +113,6 @@ def get_group_activity_feed(
     Returns:
         Tuple of (activities list, total count)
     """
-    from fastapi import HTTPException, status
     
     # Verify user is a member
     membership = db.query(GroupMember).filter(
