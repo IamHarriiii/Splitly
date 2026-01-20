@@ -47,13 +47,13 @@ def get_activity_feed(
             id=activity.id,
             user_id=activity.user_id,
             user_name=user.name if user else "Unknown",
-            action=activity.action.value,
+            action=activity.action_type.value,
             entity_type=activity.entity_type.value,
             entity_id=activity.entity_id,
             message=message,
             group_id=activity.group_id,
             group_name=group.name if group else None,
-            created_at=activity.created_at,
+            created_at=activity.timestamp,
             metadata=activity.action_metadata
         ))
     
@@ -97,13 +97,13 @@ def get_group_activity_feed(
             id=activity.id,
             user_id=activity.user_id,
             user_name=user.name if user else "Unknown",
-            action=activity.action.value,
+            action=activity.action_type.value,
             entity_type=activity.entity_type.value,
             entity_id=activity.entity_id,
             message=message,
             group_id=activity.group_id,
             group_name=group.name if group else None,
-            created_at=activity.created_at,
+            created_at=activity.timestamp,
             metadata=activity.action_metadata
         ))
     
