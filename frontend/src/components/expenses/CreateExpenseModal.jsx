@@ -5,7 +5,7 @@ import { getCategories } from '../../services/expenses';
 import { getGroupDetails } from '../../services/groups';
 import { useAuth } from '../../contexts/AuthContext';
 
-export default function CreateExpenseModal({ isOpen, onClose, onSubmit, groups, initialData = null }) {
+export default function CreateExpenseModal({ isOpen, onClose, onSubmit, groups, initialData = null, forceGroupContext = false }) {
   const { user } = useAuth();
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
@@ -39,12 +39,12 @@ export default function CreateExpenseModal({ isOpen, onClose, onSubmit, groups, 
     }
   }, [groupId]);
 
-  // Auto-select group if only one is available
+  // Auto-select group ONLY if forceGroupContext is true (opened from inside a group)
   useEffect(() => {
-    if (groups && groups.length === 1 && !groupId && !initialData) {
+    if (forceGroupContext && groups && groups.length === 1 && !initialData) {
       setGroupId(groups[0].id);
     }
-  }, [groups, groupId, initialData]);
+  }, [groups, forceGroupContext, initialData]);
 
   // Set default paidBy
   useEffect(() => {
@@ -338,17 +338,17 @@ export default function CreateExpenseModal({ isOpen, onClose, onSubmit, groups, 
                 value={groupId}
                 onChange={(e) => setGroupId(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={groups.length === 1}
+                disabled={forceGroupContext}
               >
-                {/* Only show Personal Expense option if NOT opened from single group context */}
-                {groups.length !== 1 && (
+                {/* Show Personal Expense option unless forced to group context */}
+                {!forceGroupContext && (
                   <option value="">Personal Expense</option>
                 )}
                 {groups.map(group => (
                   <option key={group.id} value={group.id}>{group.name}</option>
                 ))}
               </select>
-              {groups.length === 1 && (
+              {forceGroupContext && groups.length === 1 && (
                 <p className="text-xs text-blue-600 mt-1">This expense will be added to {groups[0].name}</p>
               )}
             </div>

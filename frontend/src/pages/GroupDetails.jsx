@@ -605,6 +605,7 @@ export default function GroupDetails() {
         onClose={() => setShowAddExpenseModal(false)}
         onSubmit={handleCreateExpense}
         groups={[group]}
+        forceGroupContext={true}
       />
     </div>
   );
