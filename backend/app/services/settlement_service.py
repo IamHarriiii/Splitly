@@ -90,6 +90,9 @@ def _eliminate_zero_sum_subsets(balance_list: List[Tuple[UUID, float]]) -> List[
     This handles circular debts efficiently.
     
     Uses dynamic programming for small groups, greedy for larger ones.
+    
+    NOTE: We only eliminate PROPER subsets (not the entire set).
+    If the entire set sums to zero, we still need transactions to settle.
     """
     if len(balance_list) <= 1:
         return balance_list
@@ -103,8 +106,9 @@ def _eliminate_zero_sum_subsets(balance_list: List[Tuple[UUID, float]]) -> List[
     n = len(balance_list)
     eliminated = [False] * n
     
-    # Check all subsets of size 2 to n
-    for subset_size in range(2, n + 1):
+    # Check all PROPER subsets of size 2 to n-1 (not the full set!)
+    # If we eliminate the full set, we'd return empty and generate no transactions
+    for subset_size in range(2, n):  # Changed from n+1 to n
         from itertools import combinations
         for indices in combinations(range(n), subset_size):
             if any(eliminated[i] for i in indices):
