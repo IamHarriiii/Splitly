@@ -20,7 +20,7 @@ export default function SettleUpModal({ isOpen, debt, onClose, onSubmit }) {
     try {
       const payload = {
         group_id: debt.group_id,
-        receiver_id: debt.user_id,
+        receiver_id: debt.other_user_id,  // Fixed: backend returns other_user_id, not user_id
         amount: parseFloat(amount),
         notes: note
       };
