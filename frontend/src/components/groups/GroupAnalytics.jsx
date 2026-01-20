@@ -106,7 +106,7 @@ export default function GroupAnalytics({ groupId }) {
       .padding(0.3);
 
     const y = d3.scaleLinear()
-      .domain([0, d3.max(data, d => d.amount_paid)])
+      .domain([0, d3.max(data, d => d.total_paid)])
       .nice()
       .range([height, 0]);
 
@@ -117,9 +117,9 @@ export default function GroupAnalytics({ groupId }) {
       .append('rect')
       .attr('class', 'bar')
       .attr('x', d => x(d.user_name))
-      .attr('y', d => y(d.amount_paid))
+      .attr('y', d => y(d.total_paid))
       .attr('width', x.bandwidth())
-      .attr('height', d => height - y(d.amount_paid))
+      .attr('height', d => height - y(d.total_paid))
       .attr('fill', '#3b82f6')
       .attr('rx', 4);
 
@@ -209,7 +209,7 @@ export default function GroupAnalytics({ groupId }) {
               <span className="text-xs text-purple-700 font-medium">Top Spender</span>
             </div>
             <p className="text-lg font-bold text-purple-900 truncate">
-              {analytics?.most_active_member || '-'}
+              {analytics?.most_active_member?.user_name || '-'}
             </p>
           </div>
           <div className="p-4 rounded-xl bg-amber-50 border border-amber-100">
@@ -244,7 +244,7 @@ export default function GroupAnalytics({ groupId }) {
                         ></div>
                         <span className="text-gray-700">{cat.category}</span>
                       </div>
-                      <span className="font-medium text-gray-900">${parseFloat(cat.amount).toFixed(0)}</span>
+                      <span className="font-medium text-gray-900">${parseFloat(cat.total_amount).toFixed(0)}</span>
                     </div>
                   ))}
                 </div>
