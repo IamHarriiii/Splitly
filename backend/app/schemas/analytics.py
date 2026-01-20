@@ -68,7 +68,7 @@ class GroupAnalytics(BaseModel):
     category_breakdown: List[CategoryBreakdown]
     monthly_trends: List[MonthlyTrend]
     member_contributions: List[Dict]  # Who paid what
-    most_active_member: Dict  # user_id, user_name, expense_count
+    most_active_member: Optional[Dict] = None  # user_id, user_name, expense_count
 
 
 class ExpenseTrend(BaseModel):
