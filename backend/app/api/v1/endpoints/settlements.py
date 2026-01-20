@@ -223,6 +223,81 @@ def get_optimized_settlements(
     }
 
 
+@router.get("/my-simplified", response_model=dict)
+def get_my_simplified_debts(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get simplified debts that the current user needs to resolve.
+    
+    Returns only the debts where the user is either:
+    - A debtor (needs to pay someone)
+    - A creditor (will receive from someone)
+    
+    These are the smart-simplified transactions across all groups.
+    """
+    # Get all groups user is a member of
+    memberships = db.query(GroupMember).filter(
+        GroupMember.user_id == current_user.id
+    ).all()
+    
+    i_need_to_pay = []  # Debts where I am the payer
+    i_will_receive = []  # Debts where I am the receiver
+    total_i_owe = 0.0
+    total_owed_to_me = 0.0
+    
+    for membership in memberships:
+        summary = settlement_service.get_group_debt_summary(
+            db, membership.group_id, current_user.id
+        )
+        
+        group = db.query(Group).filter(Group.id == membership.group_id).first()
+        group_name = group.name if group else "Unknown"
+        
+        # Filter simplified debts involving current user
+        for debt in summary.get("simplified_debts", []):
+            from_id = debt.get("from_user_id")
+            to_id = debt.get("to_user_id")
+            amount = float(debt.get("amount", 0))
+            
+            if str(from_id) == str(current_user.id):
+                # I need to pay this person
+                i_need_to_pay.append({
+                    "group_id": str(membership.group_id),
+                    "group_name": group_name,
+                    "to_user_id": to_id,
+                    "to_user_name": debt.get("to_user_name"),
+                    "amount": amount
+                })
+                total_i_owe += amount
+            elif str(to_id) == str(current_user.id):
+                # I will receive from this person
+                i_will_receive.append({
+                    "group_id": str(membership.group_id),
+                    "group_name": group_name,
+                    "from_user_id": from_id,
+                    "from_user_name": debt.get("from_user_name"),
+                    "amount": amount
+                })
+                total_owed_to_me += amount
+    
+    net_balance = total_owed_to_me - total_i_owe
+    
+    return {
+        "user_id": str(current_user.id),
+        "user_name": current_user.name,
+        "total_i_owe": total_i_owe,
+        "total_owed_to_me": total_owed_to_me,
+        "net_balance": net_balance,
+        "status": "settled" if abs(net_balance) < 0.01 and len(i_need_to_pay) == 0 and len(i_will_receive) == 0 else (
+            "you_owe" if net_balance < 0 else "you_are_owed"
+        ),
+        "debts_to_pay": i_need_to_pay,
+        "debts_to_receive": i_will_receive
+    }
+
+
 @router.get("/debts/{user_id}", response_model=dict)
 def get_debt_details_with_user(
     user_id: UUID,

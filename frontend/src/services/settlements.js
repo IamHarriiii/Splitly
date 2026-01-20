@@ -34,3 +34,8 @@ export const getDebtDetails = async (userId) => {
   const response = await api.get(`/settlements/debts/${userId}`);
   return response.data;
 };
+
+export const getMySimplifiedDebts = async () => {
+  const response = await api.get('/settlements/my-simplified');
+  return response.data;
+};
